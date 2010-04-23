@@ -28,7 +28,7 @@
        (for-all (lambda (s) (and (string? s) (positive? (string-length s))))
          (syntax->datum #'(lib ... file)))
        (let ([p (format #f "/~{~a~^/~}" (syntax->datum #'(lib ... file)))]
-             [sp (library-directories)])
+             [sp (map car (library-directories))])
          (let loop ([paths sp])
            (if (null? paths)
                (errorf 'include/resolve
@@ -56,7 +56,7 @@
        (for-all (lambda (s) (and (string? s) (positive? (string-length s))))
          (syntax->datum #'(lib ... file)))
        (let ([p (format #f "/~{~a~^/~}" (syntax->datum #'(lib ... file)))]
-             [sp (library-directories)])
+             [sp (map car (library-directories))])
          (let loop ([paths sp])
            (if (null? paths)
                (errorf 'include/resolve
