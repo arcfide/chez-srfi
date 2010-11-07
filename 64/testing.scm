@@ -567,8 +567,11 @@
  (r6rs
   (define-syntax %test-evaluate-with-catch
     (syntax-rules ()
-      ((%test-evaluate-with-catch test-expression)
-       (guard (ex (else #F)) test-expression)))))
+      ((%test-evaluate-with-catch r test-expression)
+       (guard (ex
+							 [else
+								(begin (test-result-set! r 'was-error? #t)
+											 ex)]) test-expression)))))
  (guile
   (define-syntax %test-evaluate-with-catch
     (syntax-rules ()
@@ -627,9 +630,11 @@
 
 (define (%test-on-test-end r result)
     (test-result-set! r 'result-kind
-		      (if (eq? (test-result-ref r 'result-kind) 'xfail)
-			  (if result 'xpass 'xfail)
-			  (if result 'pass 'fail))))
+			 (if (eq? (test-result-ref r 'result-kind) 'xfail)
+				(if result 'xpass 'xfail)
+			  (if result 'pass 'fail)))
+		(when (test-result-ref r 'was-error?) 
+			(test-result-set! r 'result-kind 'error)))
 
 (define (test-runner-test-name runner)
   (test-result-ref runner 'test-name ""))
@@ -641,7 +646,7 @@
 		   (if (%test-on-test-begin r)
 		       (let ((exp expected))
 			 (test-result-set! r 'expected-value exp)
-			 (let ((res (%test-evaluate-with-catch expr)))
+			 (let ((res (%test-evaluate-with-catch r expr)))
 			   (test-result-set! r 'actual-value res)
 			   (%test-on-test-end r (comp exp res)))))
 		   (%test-report-result)))))
@@ -657,7 +662,7 @@
      (let ()
        (if (%test-on-test-begin r)
 	   (let ()
-	     (let ((res (%test-evaluate-with-catch expr)))
+	     (let ((res (%test-evaluate-with-catch r expr)))
 	       (test-result-set! r 'actual-value res)
 	       (%test-on-test-end r res))))
        (%test-report-result)))))
@@ -708,6 +713,8 @@
     (lambda (x) (%test-comp2 (syntax eq?) x)))
   (define-syntax test-equal
     (lambda (x) (%test-comp2 (syntax equal?) x)))
+	(define-syntax test-pred
+		(lambda (x) (%test-comp2 (syntax equal?) x)))
   (define-syntax test-approximate ;; FIXME - needed for non-Kawa
     (lambda (x)
       (syntax-case (list x (list 'quote (%test-source-line2 x))) ()
