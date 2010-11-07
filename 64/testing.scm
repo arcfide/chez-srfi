@@ -632,9 +632,7 @@
     (test-result-set! r 'result-kind
 			 (if (eq? (test-result-ref r 'result-kind) 'xfail)
 				(if result 'xpass 'xfail)
-			  (if result 'pass 'fail)))
-		(when (test-result-ref r 'was-error?) 
-			(test-result-set! r 'result-kind 'error)))
+			  (if result 'pass 'fail))))
 
 (define (test-runner-test-name runner)
   (test-result-ref runner 'test-name ""))
