@@ -39,7 +39,7 @@
     ;; but can be called to construct more complex ones.
     test-on-group-begin-simple test-on-group-end-simple
     test-on-bad-count-simple test-on-bad-end-name-simple
-    test-on-final-simple test-on-test-end-simple)
+    test-on-final-simple test-on-test-end-simple test-pred)
   (import
     (except (rnrs base) error)
     (rnrs control)
@@ -48,6 +48,7 @@
     (rnrs lists)
     (rename (rnrs eval) (eval rnrs:eval))
     (rnrs mutable-pairs)
+    (rnrs syntax-case)
     (srfi :0 cond-expand)
     (only (srfi :1 lists) reverse!)
     (srfi :6 basic-string-ports)

@@ -762,10 +762,10 @@
     (syntax-rules ()
       ((test-equal . rest)
        (%test-comp2 equal? . rest))))
-  (define-syntax test-pred
-   (syntax-rules ()
-		 ((test-pred . rest) 
-			(%test-comp2 rest))))
+  (define-syntax (test-pred x)
+    (syntax-case x ()
+      [(_ pred? . rest)
+       #'(%test-comp2 pred? . rest)]))
   (define-syntax test-eqv
     (syntax-rules ()
       ((test-eqv . rest)

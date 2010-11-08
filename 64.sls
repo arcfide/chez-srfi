@@ -73,6 +73,7 @@
     test-runner-xpass-count!
     test-runner?
     test-skip
+    test-pred
     test-with-runner)
   (import (srfi :64 testing))
 )
