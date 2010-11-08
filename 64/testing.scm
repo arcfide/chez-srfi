@@ -1,4 +1,4 @@
-;; Copyright (c) 2005, 2006 Per Bothner
+; Copyright (c) 2005, 2006 Per Bothner
 ;;
 ;; Permission is hereby granted, free of charge, to any person
 ;; obtaining a copy of this software and associated documentation
@@ -58,7 +58,7 @@
 ;; List of exported names
 (%test-export
  test-begin ;; must be listed first, since in Kawa (at least) it is "magic".
- test-end test-assert test-eqv test-eq test-equal
+ test-end test-assert test-eqv test-eq test-equal test-pred
  test-approximate test-assert test-error test-apply test-with-runner
  test-match-nth test-match-all test-match-any test-match-name
  test-skip test-expect-fail test-read-eval-string
@@ -569,9 +569,9 @@
     (syntax-rules ()
       ((%test-evaluate-with-catch r test-expression)
        (guard (ex
-							 [else
-								(begin (test-result-set! r 'was-error? #t)
-											 ex)]) test-expression)))))
+	       [else
+		(begin (test-result-set! r 'was-error? #t)
+		       ex)]) test-expression)))))
  (guile
   (define-syntax %test-evaluate-with-catch
     (syntax-rules ()
@@ -629,10 +629,12 @@
   (not (eq? 'skip (test-result-ref r 'result-kind))))
 
 (define (%test-on-test-end r result)
-    (test-result-set! r 'result-kind
-			 (if (eq? (test-result-ref r 'result-kind) 'xfail)
-				(if result 'xpass 'xfail)
-			  (if result 'pass 'fail))))
+   (test-result-set! r 'result-kind
+      (if (test-result-ref r 'was-error?)
+	  'fail
+	 (if (eq? (test-result-ref r 'result-kind) 'xfail)
+	     (if result 'xpass 'xfail)
+	     (if result 'pass 'fail)))))
 
 (define (test-runner-test-name runner)
   (test-result-ref runner 'test-name ""))
@@ -712,7 +714,7 @@
   (define-syntax test-equal
     (lambda (x) (%test-comp2 (syntax equal?) x)))
 	(define-syntax test-pred
-		(lambda (x) (%test-comp2 (syntax equal?) x)))
+		(lambda (x) (%test-comp2 x)))
   (define-syntax test-approximate ;; FIXME - needed for non-Kawa
     (lambda (x)
       (syntax-case (list x (list 'quote (%test-source-line2 x))) ()
@@ -760,6 +762,10 @@
     (syntax-rules ()
       ((test-equal . rest)
        (%test-comp2 equal? . rest))))
+  (define-syntax test-pred
+   (syntax-rules ()
+		 ((test-pred . rest) 
+			(%test-comp2 rest))))
   (define-syntax test-eqv
     (syntax-rules ()
       ((test-eqv . rest)
