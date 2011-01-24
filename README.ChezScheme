@@ -1,0 +1,7 @@
+You will probably want to run the link-srfis.ss script if you 
+are on a UNIX machine so that Chez Scheme can easily auto-load 
+the libraries.
+
+  $ cd srfi
+  $ ./link-srfis.ss .
+
