@@ -648,8 +648,10 @@
 			 (test-result-set! r 'expected-value exp)
 			 (let ((res (%test-evaluate-with-catch r expr)))
 			   (test-result-set! r 'actual-value res)
-			   (%test-on-test-end r (comp exp res)))))
-		   (%test-report-result)))))
+			   (%test-on-test-end r (if (test-result-ref r 'was-error?)
+                                                    #f
+                                                    (comp exp res)))                    
+                           (%test-report-result))))))))
 
 (define (%test-approximimate= error)
   (lambda (value expected)
