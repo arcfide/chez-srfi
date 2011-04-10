@@ -46,12 +46,7 @@
     string? make-string string-length string-ref string-set! 
     string string-append list->string
     ; Low-level routines:
-    #;(make-kmp-restart-vector string-kmp-partial-search kmp-step
-    string-parse-start+end
-    string-parse-final-start+end
-    let-string-start+end
-    check-substring-spec
-    substring-spec-ok?)
+    make-kmp-restart-vector string-kmp-partial-search kmp-step
     )
   (import
     (except (rnrs) error string-copy string-for-each string->list

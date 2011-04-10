@@ -2,6 +2,7 @@
 #!r6rs
 (library (srfi :13)
   (export
+    make-kmp-restart-vector kmp-step string-kmp-partial-search
     list->string
     make-string
     reverse-list->string
