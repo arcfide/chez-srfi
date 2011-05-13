@@ -4,10 +4,9 @@
 ;;;            http://srfi.schemers.org/srfi-48/srfi-48.html
 ;;; AUTHOR     Ken Dickey
 ;;; UPDATED    Syntax updated for R6RS February 2008 by Ken Dickey
-;;; LANGUAGE   R6RS but specific to Ikarus Scheme
+;;; LANGUAGE   R6RS
 
-;; Small changes by Derick Eddington to make the begining of `format'
-;; more effecient and more abstracted. 
+;; Small changes by Derick Eddington to the beginning of `format'.
 
 ;;;Copyright (C) Kenneth A Dickey (2003). All Rights Reserved.
 ;;;

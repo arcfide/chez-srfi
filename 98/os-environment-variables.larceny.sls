@@ -1,7 +1,6 @@
-;; Copyright (c) 2009 Derick Eddington.  All rights reserved.  Licensed under an
-;; MIT-style license.  My license is in the file named LICENSE from the original
-;; collection this file is distributed with.  If this file is redistributed with
-;; some other collection, my license must also be included.
+#!r6rs
+;; Copyright 2009 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
 
 ;; NOTE: I believe this currently works only on Linux.
 ;; NOTE: If Larceny's FFI changes, this may no longer work.
@@ -17,7 +16,7 @@
     (primitives
      foreign-procedure #;foreign-variable foreign-null-pointer? sizeof:pointer
      %peek-pointer %peek8u void*->address ffi/dlopen ffi/dlsym)
-    (srfi :0 cond-expand))
+    (srfi private feature-cond))
 
   ;; TODO: Will the convenient string converters use the native transcoder in
   ;;       the future?  So that scheme-str->c-str-bv and c-str-ptr->scheme-str
@@ -56,7 +55,7 @@
 
   ;; TODO: Is (ffi/dlopen "") okay?  It works for me on Ubuntu Linux 8.10.
   (define environ
-    (cond-expand
+    (feature-cond
      (linux
       (%peek-pointer (ffi/dlsym (ffi/dlopen "") "environ")))))
 

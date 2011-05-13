@@ -2,16 +2,14 @@
 ; Eager Comprehensions in [outer..inner|expr]-Convention
 ; ======================================================
 ;
-; sebastian.egner@philips.com, Eindhoven, The Netherlands, 25-Apr-2005
+; sebastian.egner@philips.com, Eindhoven, The Netherlands, 26-Dec-2007
 ; Scheme R5RS (incl. macros), SRFI-23 (error).
-;
-; Modified by Derick Eddington to be able to be included into an R6RS library.
 ; 
 ; Loading the implementation into Scheme48 0.57:
 ;   ,open srfi-23
 ;   ,load ec.scm
 ;
-; Loading the implementation into PLT/DrScheme 202:
+; Loading the implementation into PLT/DrScheme 317:
 ;   ; File > Open ... "ec.scm", click Execute
 ;
 ; Loading the implementation into SCM 5d7:
@@ -272,12 +270,13 @@
 ;          ((:while-1 cc test (:do olet lbs ne1? ilet ne2? lss))
 ;           (:do cc olet lbs (and ne1? test) ilet ne2? lss) )))
 ;
+; Bug #1:
 ;    Unfortunately, this code is wrong because ne1? may depend
 ;    in the inner bindings introduced in ilet, but ne1? is evaluated
 ;    outside of the inner bindings. (Refer to the specification of
 ;    :do to see the structure.) 
 ;       The problem manifests itself (as sunnan@handgranat.org 
-;    observed) when the :list-generator is modified:
+;    observed, 25-Apr-2005) when the :list-generator is modified:
 ; 
 ;      (do-ec (:while (:list x '(1 2)) (= x 1)) (display x)).
 ;
@@ -302,6 +301,19 @@
 ;               /payload/
 ;               (if ne2?
 ;                   (loop ls ...) )))))
+; 
+; Bug #2:
+;    Unfortunately, the above expansion is still incorrect (as Jens-Axel 
+;    Soegaard pointed out, 4-Jun-2007) because ib-rhs are evaluated even
+;    if ne1?-value is #f, indicating that the loop has ended.
+;       The problem manifests itself in the following example:
+;
+;      (do-ec (:while (:list x '(1)) #t) (display x))
+;
+;    Which iterates :list beyond exhausting the list '(1).
+;
+;    For the fix, we follow Jens-Axel's approach of guarding the evaluation
+;    of ib-rhs with a check on ne1?-value.
 
 (define-syntax :while-1
   (syntax-rules (:do let)
@@ -342,9 +354,10 @@
           (let (ob ... ib-let ...) oc ...)
           lbs
           (let ((ne1?-value ne1?))
-            (let (ib-save ...)
-                ic ...
-                (and ne1?-value test)))
+	    (and ne1?-value
+		 (let (ib-save ...)
+		   ic ...
+		   test)))
           (let (ib-restore ...))
           ne2?
           lss))))
@@ -780,22 +793,23 @@
           (else
            #f )))))))
 
-(define :-dispatch 
-  (make-parameter (make-initial-:-dispatch)
-                  (lambda (x) (if (procedure? x) x (error "not a procedure" x)))))
+(define :-dispatch
+  (make-initial-:-dispatch) )
 
 (define (:-dispatch-ref)
-  (:-dispatch))
+  :-dispatch )
 
 (define (:-dispatch-set! dispatch)
-  (:-dispatch dispatch))
+  (if (not (procedure? dispatch))
+      (error "not a procedure" dispatch) )
+  (set! :-dispatch dispatch) )
 
 (define-syntax :
   (syntax-rules (index)
     ((: cc var (index i) arg1 arg ...)
-     (:dispatched cc var (index i) (:-dispatch) arg1 arg ...) )
+     (:dispatched cc var (index i) :-dispatch arg1 arg ...) )
     ((: cc var arg1 arg ...)
-     (:dispatched cc var (:-dispatch) arg1 arg ...) )))
+     (:dispatched cc var :-dispatch arg1 arg ...) )))
 
 
 ; ==========================================================================

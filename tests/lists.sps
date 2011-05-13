@@ -1,3 +1,4 @@
+#!r6rs
 ; Test suite for SRFI-1
 ; 2003-12-29 / lth
 ;

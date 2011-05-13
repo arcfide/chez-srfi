@@ -1,3 +1,4 @@
+#!r6rs
 ;; Copyright (C) William D Clinger 2008. All Rights Reserved.
 ;;
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,18 +19,6 @@
 ;; CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 ;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-; ERR5RS Records.
-;
-; This is a quick-and-dirty reference implementation that favors
-; simplicity over quality error messages and performance.  It is
-; implemented using the R6RS procedural and inspection layers,
-; with which it interoperates nicely.
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-#!r6rs
 (library (srfi :99 records procedural)
 
   (export make-rtd rtd? rtd-constructor
@@ -63,40 +52,40 @@
                          (list 'mutable fieldspec)
                          fieldspec))
                    fieldspecs))))
-
+  
   (define rtd? record-type-descriptor?)
-
+  
   (define (rtd-constructor rtd . rest)
-
+  
     ; Computes permutation and allocates permutation buffer
     ; when the constructor is created, not when the constructor
     ; is called.  More error checking is recommended.
-
+  
     (define (make-constructor fieldspecs allnames maker)
       (let* ((k (length fieldspecs))
              (n (length allnames))
              (buffer (make-vector n))
              (reverse-all-names (reverse allnames)))
-
+  
         (define (position fieldname)
           (let ((names (memq fieldname reverse-all-names)))
             (assert names)
             (- (length names) 1)))
-
+  
         (let ((indexes (map position fieldspecs)))
-
+  
           ; The following can be made quite efficient by
           ; hand-coding it in some lower-level language,
           ; e.g. Larceny's mal.  Even case-lambda would
           ; be good enough in most systems.
-
+  
           (lambda args
             (assert (= (length args) k))
             (for-each (lambda (arg posn)
                         (vector-set! buffer posn arg))
                       args indexes)
             (apply maker (vector->list buffer))))))
-
+  
     (if (null? rest)
         (record-constructor
          (make-record-constructor-descriptor rtd #f #f))
@@ -106,9 +95,9 @@
                 (vector->list (rtd-all-field-names rtd))
                 (record-constructor
                  (make-record-constructor-descriptor rtd #f #f))))))
-
+  
   (define rtd-predicate record-predicate)
-
+  
   (define (rtd-accessor rtd0 fieldname)
     (define (loop rtd)
       (if (rtd? rtd)
@@ -120,7 +109,7 @@
           (assertion-violation 'rtd-accessor
                                "illegal argument" rtd0 fieldname)))
     (loop rtd0))
-
+  
   (define (rtd-mutator rtd0 fieldname)
     (define (loop rtd)
       (if (rtd? rtd)
@@ -133,4 +122,4 @@
                                "illegal argument" rtd0 fieldname)))
     (loop rtd0))
 
-)
+  )

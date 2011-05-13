@@ -1,7 +1,6 @@
-;; Copyright (c) 2009 Derick Eddington.  All rights reserved.  Licensed under an
-;; MIT-style license.  My license is in the file named LICENSE from the original
-;; collection this file is distributed with.  If this file is redistributed with
-;; some other collection, my license must also be included.
+#!r6rs
+;; Copyright 2009 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
 
 (library (srfi :38 with-shared-structure)
   (export
@@ -15,14 +14,14 @@
   
   (define write-with-shared-structure
     (case-lambda 
-      [(obj)
-       (write-with-shared-structure obj (current-output-port))]
-      [(obj port)
-       (parameterize ([print-graph #t])
-         (write obj port))]
-      [(obj port optarg)
+      ((obj)
+       (write-with-shared-structure obj (current-output-port)))
+      ((obj port)
+       (parameterize ((print-graph #T))
+         (write obj port)))
+      ((obj port optarg)
        (assertion-violation 'write-with-shared-structure
-         "this implementation does not support optarg")]))
+         "this implementation does not support optarg"))))
   
   (define read-with-shared-structure read)
   

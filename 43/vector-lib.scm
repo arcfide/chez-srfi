@@ -1,7 +1,9 @@
 ;;;;;; SRFI 43: Vector library                           -*- Scheme -*-
-
+;;;
+;;; $Id: vector-lib.scm,v 1.7 2009/03/29 09:46:03 sperber Exp $
+;;;
 ;;; Taylor Campbell wrote this code; he places it in the public domain.
-;;; Modified by Derick Eddington to be included into an R6RS library.
+;;; Will Clinger [wdc] made some corrections, also in the public domain.
 
 ;;; --------------------
 ;;; Exported procedure index
@@ -80,40 +82,40 @@
 ;;; Utilities
 
 ;;; SRFI 8, too trivial to put in the dependencies list.
-;(define-syntax receive
-;  (syntax-rules ()
-;    ((receive ?formals ?producer ?body1 ?body2 ...)
-;     (call-with-values (lambda () ?producer)
-;       (lambda ?formals ?body1 ?body2 ...)))))
+(define-syntax receive
+  (syntax-rules ()
+    ((receive ?formals ?producer ?body1 ?body2 ...)
+     (call-with-values (lambda () ?producer)
+       (lambda ?formals ?body1 ?body2 ...)))))
 
 ;;; Not the best LET*-OPTIONALS, but not the worst, either.  Use Olin's
 ;;; if it's available to you.
-;(define-syntax let*-optionals
-;  (syntax-rules ()
-;    ((let*-optionals (?x ...) ((?var ?default) ...) ?body1 ?body2 ...)
-;     (let ((args (?x ...)))
-;       (let*-optionals args ((?var ?default) ...) ?body1 ?body2 ...)))
-;    ((let*-optionals ?args ((?var ?default) ...) ?body1 ?body2 ...)
-;     (let*-optionals:aux ?args ?args ((?var ?default) ...)
-;       ?body1 ?body2 ...))))
-;
-;(define-syntax let*-optionals:aux
-;  (syntax-rules ()
-;    ((aux ?orig-args-var ?args-var () ?body1 ?body2 ...)
-;     (if (null? ?args-var)
-;         (let () ?body1 ?body2 ...)
-;         (error "too many arguments" (length ?orig-args-var)
-;                ?orig-args-var)))
-;    ((aux ?orig-args-var ?args-var
-;         ((?var ?default) ?more ...)
-;       ?body1 ?body2 ...)
-;     (if (null? ?args-var)
-;         (let* ((?var ?default) ?more ...) ?body1 ?body2 ...)
-;         (let ((?var (car ?args-var))
-;               (new-args (cdr ?args-var)))
-;           (let*-optionals:aux ?orig-args-var new-args
-;               (?more ...)
-;             ?body1 ?body2 ...))))))
+(define-syntax let*-optionals
+  (syntax-rules ()
+    ((let*-optionals (?x ...) ((?var ?default) ...) ?body1 ?body2 ...)
+     (let ((args (?x ...)))
+       (let*-optionals args ((?var ?default) ...) ?body1 ?body2 ...)))
+    ((let*-optionals ?args ((?var ?default) ...) ?body1 ?body2 ...)
+     (let*-optionals:aux ?args ?args ((?var ?default) ...)
+       ?body1 ?body2 ...))))
+
+(define-syntax let*-optionals:aux
+  (syntax-rules ()
+    ((aux ?orig-args-var ?args-var () ?body1 ?body2 ...)
+     (if (null? ?args-var)
+         (let () ?body1 ?body2 ...)
+         (error "too many arguments" (length ?orig-args-var)
+                ?orig-args-var)))
+    ((aux ?orig-args-var ?args-var
+         ((?var ?default) ?more ...)
+       ?body1 ?body2 ...)
+     (if (null? ?args-var)
+         (let* ((?var ?default) ?more ...) ?body1 ?body2 ...)
+         (let ((?var (car ?args-var))
+               (new-args (cdr ?args-var)))
+           (let*-optionals:aux ?orig-args-var new-args
+               (?more ...)
+             ?body1 ?body2 ...))))))
 
 (define (nonneg-int? x)
   (and (integer? x)
@@ -161,15 +163,22 @@
 ;;;   error stating that VALUE did not satisfy TYPE-PREDICATE?, showing
 ;;;   that this happened while calling CALLEE.  Return VALUE if no
 ;;;   error was signalled.
+(define (check-type pred? value callee)
+  (if (pred? value)
+      value
+      ;; Recur: when (or if) the user gets a debugger prompt, he can
+      ;; proceed where the call to ERROR was with the correct value.
+      (check-type pred?
+                  (error "erroneous value"
+                         (list pred? value)
+                         `(while calling ,callee))
+                  callee)))
 
 ;;; (CHECK-INDEX <vector> <index> <callee>) -> index
 ;;;   Ensure that INDEX is a valid index into VECTOR; if not, signal an
 ;;;   error stating that it is not and that this happened in a call to
 ;;;   CALLEE.  Return INDEX when it is valid.  (Note that this does NOT
 ;;;   check that VECTOR is indeed a vector.)
-;;;   Derick thinks the index checking can be optimized by wrapping all the
-;;;   appropriate procedures with an exception handler which catches out-of-
-;;;   bounds exceptions and then raises a new exception with the relevant &who.
 (define (check-index vec index callee)
   (let ((index (check-type integer? index callee)))
     (cond ((< index 0)
@@ -439,13 +448,11 @@
 ;;;   [R5RS] Create a vector of length LENGTH.  If FILL is present,
 ;;;   initialize each slot in the vector with it; if not, the vector's
 ;;;   initial contents are unspecified.
-; Already in R6RS
-;(define make-vector make-vector)
+(define make-vector make-vector)
 
 ;;; (VECTOR <elt> ...) -> vector
 ;;;   [R5RS] Create a vector containing ELEMENT ..., in order.
-; Already in R6RS
-;(define vector vector)
+(define vector vector)
 
 ;;; This ought to be able to be implemented much more efficiently -- if
 ;;; we have the number of arguments available to us, we can create the
@@ -481,8 +488,8 @@
                     (vector-set! vec i elt)
                     (unfold2+! f vec (+ i 1) len new-seeds))))))
     (lambda (f len . initial-seeds)
-      (let ((f   (check-type procedure?  f   'vector-unfold))
-            (len (check-type nonneg-int? len 'vector-unfold)))
+      (let ((f   (check-type procedure?  f   vector-unfold))
+            (len (check-type nonneg-int? len vector-unfold)))
         (let ((vec (make-vector len)))
           (cond ((null? initial-seeds)
                  (tabulate! f vec 0 len))
@@ -518,8 +525,8 @@
                     (vector-set! vec i elt)
                     (unfold2+! f vec (- i 1) new-seeds))))))
     (lambda (f len . initial-seeds)
-      (let ((f   (check-type procedure?  f   'vector-unfold-right))
-            (len (check-type nonneg-int? len 'vector-unfold-right)))
+      (let ((f   (check-type procedure?  f   vector-unfold-right))
+            (len (check-type nonneg-int? len vector-unfold-right)))
         (let ((vec (make-vector len))
               (i (- len 1)))
           (cond ((null? initial-seeds)
@@ -538,7 +545,7 @@
 ;;;   the new locations from which there is no respective element in
 ;;;   VECTOR are filled with FILL.
 (define (vector-copy vec . args)
-  (let ((vec (check-type vector? vec 'vector-copy)))
+  (let ((vec (check-type vector? vec vector-copy)))
     ;; We can't use LET-VECTOR-START+END, because we have one more
     ;; argument, and we want finer control, too.
     ;;
@@ -556,35 +563,33 @@
         new-vector))))
 
 ;;; Auxiliary for VECTOR-COPY.
+;;; [wdc] Corrected to allow 0 <= start <= (vector-length vec).
 (define (vector-copy:parse-args vec args)
-  (if (null? args)
-      (values 0 (vector-length vec) (unspecified-value))
-      (let ((start (check-index vec (car args) 'vector-copy)))
-        (if (null? (cdr args))
-            (values start (vector-length vec) (unspecified-value))
-            (let ((end (check-type nonneg-int? (cadr args)
-                                   'vector-copy)))
-              (cond ((>= start (vector-length vec))
-                     (error "start bound out of bounds"
-                            `(start was ,start)
-                            `(end was ,end)
-                            `(vector was ,vec)
-                            `(while calling ,vector-copy)))
-                    ((> start end)
-                     (error "can't invert a vector copy!"
-                            `(start was ,start)
-                            `(end was ,end)
-                            `(vector was ,vec)
-                            `(while calling ,vector-copy)))
-                    ((null? (cddr args))
-                     (values start end (unspecified-value)))
-                    (else
-                     (let ((fill (caddr args)))
-                       (if (null? (cdddr args))
-                           (values start end fill)
-                           (error "too many arguments"
-                                  vector-copy
-                                  (cdddr args)))))))))))
+  (define (parse-args start end n fill)
+    (let ((start (check-type nonneg-int? start vector-copy))
+          (end   (check-type nonneg-int? end vector-copy)))
+      (cond ((and (<= 0 start end)
+                  (<= start n))
+             (values start end fill))
+            (else
+             (error "illegal arguments"
+                    `(while calling ,vector-copy)
+                    `(start was ,start)
+                    `(end was ,end)
+                    `(vector was ,vec))))))
+  (let ((n (vector-length vec)))
+    (cond ((null? args)
+           (parse-args 0 n n (unspecified-value)))
+          ((null? (cdr args))
+           (parse-args (car args) n n (unspecified-value)))
+          ((null? (cddr args))
+           (parse-args (car args) (cadr args) n (unspecified-value)))
+          ((null? (cdddr args))
+           (parse-args (car args) (cadr args) n (caddr args)))
+          (else
+           (error "too many arguments"
+                  vector-copy
+                  (cdddr args))))))
 
 ;;; (VECTOR-REVERSE-COPY <vector> [<start> <end>]) -> vector
 ;;;   Create a newly allocated vector whose elements are the reversed
@@ -657,14 +662,13 @@
 
 ;;; (VECTOR? <value>) -> boolean
 ;;;   [R5RS] Return #T if VALUE is a vector and #F if not.
-; Already in R6RS
-;(define vector? vector?)
+(define vector? vector?)
 
 ;;; (VECTOR-EMPTY? <vector>) -> boolean
 ;;;   Return #T if VECTOR has zero elements in it, i.e. VECTOR's length
 ;;;   is 0, and #F if not.
 (define (vector-empty? vec)
-  (let ((vec (check-type vector? vec 'vector-empty?)))
+  (let ((vec (check-type vector? vec vector-empty?)))
     (zero? (vector-length vec))))
 
 ;;; (VECTOR= <elt=?> <vector> ...) -> boolean
@@ -688,15 +692,15 @@
 ;;;   are compared.  The precise order in which ELT=? is applied is not
 ;;;   specified.
 (define (vector= elt=? . vectors)
-  (let ((elt=? (check-type procedure? elt=? 'vector=)))
+  (let ((elt=? (check-type procedure? elt=? vector=)))
     (cond ((null? vectors)
            #t)
           ((null? (cdr vectors))
-           (check-type vector? (car vectors) 'vector=)
+           (check-type vector? (car vectors) vector=)
            #t)
           (else
            (let loop ((vecs vectors))
-             (let ((vec1 (check-type vector? (car vecs) 'vector=))
+             (let ((vec1 (check-type vector? (car vecs) vector=))
                    (vec2+ (cdr vecs)))
                (or (null? vec2+)
                    (and (binary-vector= elt=? vec1 (car vec2+))
@@ -726,13 +730,11 @@
 ;;; (VECTOR-REF <vector> <index>) -> value
 ;;;   [R5RS] Return the value that the location in VECTOR at INDEX is
 ;;;   mapped to in the store.
-; Already in R6RS
-;(define vector-ref vector-ref)
+(define vector-ref vector-ref)
 
 ;;; (VECTOR-LENGTH <vector>) -> exact, nonnegative integer
 ;;;   [R5RS] Return the length of VECTOR.
-; Already in R6RS
-;(define vector-length vector-length)
+(define vector-length vector-length)
 
 
 
@@ -753,8 +755,8 @@
 ;;;       <=>
 ;;;     (KONS (... (KONS (KONS KNIL E_1) E_2) ... E_N-1) E_N)
 (define (vector-fold kons knil vec . vectors)
-  (let ((kons (check-type procedure? kons 'vector-fold))
-        (vec  (check-type vector?    vec  'vector-fold)))
+  (let ((kons (check-type procedure? kons vector-fold))
+        (vec  (check-type vector?    vec  vector-fold)))
     (if (null? vectors)
         (%vector-fold1 kons knil (vector-length vec) vec)
         (%vector-fold2+ kons knil
@@ -792,8 +794,8 @@
                                  vectors
                                  (- i 1))))))
     (lambda (kons knil vec . vectors)
-      (let ((kons (check-type procedure? kons 'vector-fold-right))
-            (vec  (check-type vector?    vec  'vector-fold-right)))
+      (let ((kons (check-type procedure? kons vector-fold-right))
+            (vec  (check-type vector?    vec  vector-fold-right)))
         (if (null? vectors)
             (loop1  kons knil vec (- (vector-length vec) 1))
             (loop2+ kons knil (cons vec vectors)
@@ -809,8 +811,8 @@
 ;;;   from the old vectors by (F I (vector-ref VECTOR I) ...).  The
 ;;;   dynamic order of application of F is unspecified.
 (define (vector-map f vec . vectors)
-  (let ((f   (check-type procedure? f   'vector-map))
-        (vec (check-type vector?    vec 'vector-map)))
+  (let ((f   (check-type procedure? f   vector-map))
+        (vec (check-type vector?    vec vector-map)))
     (if (null? vectors)
         (let ((len (vector-length vec)))
           (%vector-map1! f (make-vector len) vec len))
@@ -828,8 +830,8 @@
 ;;;   application of F is unspecified, so it is dangerous for F to
 ;;;   manipulate the first VECTOR.
 (define (vector-map! f vec . vectors)
-  (let ((f   (check-type procedure? f   'vector-map!))
-        (vec (check-type vector?    vec 'vector-map!)))
+  (let ((f   (check-type procedure? f   vector-map!))
+        (vec (check-type vector?    vec vector-map!)))
     (if (null? vectors)
         (%vector-map1!  f vec vec (vector-length vec))
         (%vector-map2+! f vec (cons vec vectors)
@@ -858,8 +860,8 @@
                      (apply f i (vectors-ref vecs i))
                      (for-each2+ f vecs (+ i 1) len))))))
     (lambda (f vec . vectors)
-      (let ((f   (check-type procedure? f   'vector-for-each))
-            (vec (check-type vector?    vec 'vector-for-each)))
+      (let ((f   (check-type procedure? f   vector-for-each))
+            (vec (check-type vector?    vec vector-for-each)))
         (if (null? vectors)
             (for-each1 f vec 0 (vector-length vec))
             (for-each2+ f (cons vec vectors) 0
@@ -874,8 +876,8 @@
 ;;;   and a count is tallied of the number of elements for which a
 ;;;   true value is produced by PREDICATE?.  This count is returned.
 (define (vector-count pred? vec . vectors)
-  (let ((pred? (check-type procedure? pred? 'vector-count))
-        (vec   (check-type vector?    vec   'vector-count)))
+  (let ((pred? (check-type procedure? pred? vector-count))
+        (vec   (check-type vector?    vec   vector-count)))
     (if (null? vectors)
         (%vector-fold1 (lambda (index count elt)
                          (if (pred? index elt)
@@ -988,7 +990,7 @@
 ;;;   Perform a binary search through VECTOR for VALUE, comparing each
 ;;;   element to VALUE with CMP.
 (define (vector-binary-search vec value cmp . maybe-start+end)
-  (let ((cmp (check-type procedure? cmp 'vector-binary-search)))
+  (let ((cmp (check-type procedure? cmp vector-binary-search)))
     (let-vector-start+end vector-binary-search vec maybe-start+end
                           (start end)
       (let loop ((start start) (end end) (j #f))
@@ -998,7 +1000,7 @@
               (let ((comparison
                      (check-type integer?
                                  (cmp (vector-ref vec i) value)
-                                 'vector-binary-search)))
+                                 `(,cmp for ,vector-binary-search))))
                 (cond ((zero?     comparison) i)
                       ((positive? comparison) (loop start i i))
                       (else                   (loop i end i))))))))))
@@ -1025,8 +1027,8 @@
                                   (loop2+ pred? vectors (+ i 1)
                                          len len-1)))))))
     (lambda (pred? vec . vectors)
-      (let ((pred? (check-type procedure? pred? 'vector-any))
-            (vec   (check-type vector?    vec   'vector-any)))
+      (let ((pred? (check-type procedure? pred? vector-any))
+            (vec   (check-type vector?    vec   vector-any)))
         (if (null? vectors)
             (let ((len (vector-length vec)))
               (loop1 pred? vec 0 len (- len 1)))
@@ -1059,8 +1061,8 @@
                                   (loop2+ pred? vectors (+ i 1)
                                           len len-1)))))))
     (lambda (pred? vec . vectors)
-      (let ((pred? (check-type procedure? pred? 'vector-every))
-            (vec   (check-type vector?    vec   'vector-every)))
+      (let ((pred? (check-type procedure? pred? vector-every))
+            (vec   (check-type vector?    vec   vector-every)))
         (if (null? vectors)
             (let ((len (vector-length vec)))
               (loop1 pred? vec 0 len (- len 1)))
@@ -1076,15 +1078,14 @@
 
 ;;; (VECTOR-SET! <vector> <index> <value>) -> unspecified
 ;;;   [R5RS] Assign the location at INDEX in VECTOR to VALUE.
-; Already in R6RS
-;(define vector-set! vector-set!)
+(define vector-set! vector-set!)
 
 ;;; (VECTOR-SWAP! <vector> <index1> <index2>) -> unspecified
 ;;;   Swap the values in the locations at INDEX1 and INDEX2.
 (define (vector-swap! vec i j)
-  (let ((vec (check-type vector? vec 'vector-swap!)))
-    (let ((i (check-index vec i 'vector-swap!))
-          (j (check-index vec j 'vector-swap!)))
+  (let ((vec (check-type vector? vec vector-swap!)))
+    (let ((i (check-index vec i vector-swap!))
+          (j (check-index vec j vector-swap!)))
       (let ((x (vector-ref vec i)))
         (vector-set! vec i (vector-ref vec j))
         (vector-set! vec j x)))))
@@ -1095,7 +1096,7 @@
 ;;;
 ;;; This one can probably be made really fast natively.
 (define vector-fill!
-  (let ((%vector-fill! rnrs:vector-fill!))   ; Take the native one, under
+  (let ((%vector-fill! vector-fill!))   ; Take the native one, under
                                         ;   the assumption that it's
                                         ;   faster, so we can use it if
                                         ;   there are no optional
@@ -1113,81 +1114,78 @@
 ;;;       -> unspecified
 ;;;   Copy the values in the locations in [SSTART,SEND) from SOURCE to
 ;;;   to TARGET, starting at TSTART in TARGET.
+;;; [wdc] Corrected to allow 0 <= sstart <= send <= (vector-length source).
 (define (vector-copy! target tstart source . maybe-sstart+send)
-  (let* ((target (check-type vector? target 'vector-copy!))
-         (tstart (check-index target tstart 'vector-copy!)))
-    (let-vector-start+end vector-copy! source maybe-sstart+send
-                          (sstart send)
-      (let* ((source-length (vector-length source))
-             (lose (lambda (argument)
-                     (error "vector range out of bounds"
-                            argument
-                            `(while calling ,vector-copy!)
-                            `(target was ,target)
-                            `(target-length was ,(vector-length target))
-                            `(tstart was ,tstart)
-                            `(source was ,source)
-                            `(source-length was ,source-length)
-                            `(sstart was ,sstart)
-                            `(send   was ,send)))))
-        (cond ((< sstart 0)
-               (lose '(sstart < 0)))
-              ((< send 0)
-               (lose '(send < 0)))
-              ((> sstart send)
-               (lose '(sstart > send)))
-              ((>= sstart source-length)
-               (lose '(sstart >= source-length)))
-              ((> send source-length)
-               (lose '(send > source-length)))
-              (else
-               (%vector-copy! target tstart
-                              source sstart send)))))))
+  (define (doit! sstart send source-length)
+    (let ((tstart (check-type nonneg-int? tstart vector-copy!))
+          (sstart (check-type nonneg-int? sstart vector-copy!))
+          (send   (check-type nonneg-int? send vector-copy!)))
+      (cond ((and (<= 0 sstart send source-length)
+                  (<= (+ tstart (- send sstart)) (vector-length target)))
+             (%vector-copy! target tstart source sstart send))
+            (else
+             (error "illegal arguments"
+                    `(while calling ,vector-copy!)
+                    `(target was ,target)
+                    `(target-length was ,(vector-length target))
+                    `(tstart was ,tstart)
+                    `(source was ,source)
+                    `(source-length was ,source-length)
+                    `(sstart was ,sstart)
+                    `(send   was ,send))))))
+  (let ((n (vector-length source)))
+    (cond ((null? maybe-sstart+send)
+           (doit! 0 n n))
+          ((null? (cdr maybe-sstart+send))
+           (doit! (car maybe-sstart+send) n n))
+          ((null? (cddr maybe-sstart+send))
+           (doit! (car maybe-sstart+send) (cadr maybe-sstart+send) n))
+          (else
+           (error "too many arguments"
+                  vector-copy!
+                  (cddr maybe-sstart+send))))))
 
 ;;; (VECTOR-REVERSE-COPY! <target> <tstart> <source> [<sstart> <send>])
+;;; [wdc] Corrected to allow 0 <= sstart <= send <= (vector-length source).
 (define (vector-reverse-copy! target tstart source . maybe-sstart+send)
-  (let* ((target (check-type vector? target 'vector-reverse-copy!))
-         (tstart (check-index target tstart 'vector-reverse-copy!)))
-    (let-vector-start+end vector-reverse-copy source maybe-sstart+send
-                          (sstart send)
-      (let* ((source-length (vector-length source))
-             (lose (lambda (argument)
-                     (error "vector range out of bounds"
-                            argument
-                            `(while calling ,vector-reverse-copy!)
-                            `(target was ,target)
-                            `(target-length was ,(vector-length target))
-                            `(tstart was ,tstart)
-                            `(source was ,source)
-                            `(source-length was ,source-length)
-                            `(sstart was ,sstart)
-                            `(send   was ,send)))))
-        (cond ((< sstart 0)
-               (lose '(sstart < 0)))
-              ((< send 0)
-               (lose '(send < 0)))
-              ((> sstart send)
-               (lose '(sstart > send)))
-              ((>= sstart source-length)
-               (lose '(sstart >= source-length)))
-              ((> send source-length)
-               (lose '(send > source-length)))
-              ((and (eq? target source)
-                    (= sstart tstart))
-               (%vector-reverse! target tstart send))
-              ((and (eq? target source)
-                    (or (between? sstart tstart send)
-                        (between? tstart sstart
-                                  (+ tstart (- send sstart)))))
+  (define (doit! sstart send source-length)
+    (let ((tstart (check-type nonneg-int? tstart vector-reverse-copy!))
+          (sstart (check-type nonneg-int? sstart vector-reverse-copy!))
+          (send   (check-type nonneg-int? send vector-reverse-copy!)))
+      (cond ((and (eq? target source)
+                  (or (between? sstart tstart send)
+                      (between? tstart sstart
+                                (+ tstart (- send sstart)))))
                (error "vector range for self-copying overlaps"
                       vector-reverse-copy!
                       `(vector was ,target)
                       `(tstart was ,tstart)
                       `(sstart was ,sstart)
                       `(send   was ,send)))
-              (else
-               (%vector-reverse-copy! target tstart
-                                      source sstart send)))))))
+            ((and (<= 0 sstart send source-length)
+                  (<= (+ tstart (- send sstart)) (vector-length target)))
+             (%vector-reverse-copy! target tstart source sstart send))
+            (else
+             (error "illegal arguments"
+                    `(while calling ,vector-reverse-copy!)
+                    `(target was ,target)
+                    `(target-length was ,(vector-length target))
+                    `(tstart was ,tstart)
+                    `(source was ,source)
+                    `(source-length was ,source-length)
+                    `(sstart was ,sstart)
+                    `(send   was ,send))))))
+  (let ((n (vector-length source)))
+    (cond ((null? maybe-sstart+send)
+           (doit! 0 n n))
+          ((null? (cdr maybe-sstart+send))
+           (doit! (car maybe-sstart+send) n n))
+          ((null? (cddr maybe-sstart+send))
+           (doit! (car maybe-sstart+send) (cadr maybe-sstart+send) n))
+          (else
+           (error "too many arguments"
+                  vector-reverse-copy!
+                  (cddr maybe-sstart+send))))))
 
 ;;; (VECTOR-REVERSE! <vector> [<start> <end>]) -> unspecified
 ;;;   Destructively reverse the contents of the sequence of locations
@@ -1208,7 +1206,7 @@
 ;;;   between START, whose default is 0, and END, whose default is the
 ;;;   length of VECTOR, from VECTOR.
 (define vector->list
-  (let ((%vector->list rnrs:vector->list))
+  (let ((%vector->list vector->list))
     (lambda (vec . maybe-start+end)
       (if (null? maybe-start+end)       ; Oughta use CASE-LAMBDA.
           (%vector->list vec)           ;+++
@@ -1238,7 +1236,7 @@
          (result '() (cons (vector-ref vec i) result)))
         ((= i end) result))))
 
-;;; (LIST->VECTOR <list> [<start> [<end>]]) -> vector
+;;; (LIST->VECTOR <list> [<start> <end>]) -> vector
 ;;;   [R5RS+] Produce a vector containing the elements in LIST, which
 ;;;   must be a proper list, between START, whose default is 0, & END,
 ;;;   whose default is the length of LIST.  It is suggested that if the
@@ -1251,40 +1249,40 @@
 ;;; length of a list's cycle, this wouldn't diverge, and would work
 ;;; great for circular lists.
 (define list->vector
-  (let ((%list->vector rnrs:list->vector))
-    (case-lambda
-      [(lst)
-       (%list->vector lst)]
-      [(lst start)
-       (list->vector lst start (length lst))]
-      [(lst start end)
-       ;; Checking the type of a proper list is expensive, so we do it
-       ;; amortizedly, or let %LIST->VECTOR or LIST-TAIL do it.
-       ;; We can't use LET-VECTOR-START+END, because we're using the
-       ;; bounds of a _list_, not a vector.
-       (let ((start (check-type nonneg-int? start 'list->vector))
-             (end   (check-type nonneg-int? end   'list->vector)))
-         ((lambda (f)
-            (vector-unfold f (- end start) (list-tail lst start)))
-          (lambda (index l)
-            (cond ((null? l)
-                   (error "list was too short"
-                          `(list was ,lst)
-                          `(attempted end was ,end)
-                          `(while calling ,list->vector)))
-                  ((pair? l)
-                   (values (car l) (cdr l)))
-                  (else
-                   ;; Make this look as much like what CHECK-TYPE
-                   ;; would report as possible.
-                   (error "erroneous value"
-                          ;; We want SRFI 1's PROPER-LIST?, but it
-                          ;; would be a waste to link all of SRFI
-                          ;; 1 to this module for only the single
-                          ;; function PROPER-LIST?.
-                          (list list? lst)
-                          `(while calling
-                                  ,list->vector)))))))])))
+  (let ((%list->vector list->vector))
+    (lambda (lst . maybe-start+end)
+      ;; Checking the type of a proper list is expensive, so we do it
+      ;; amortizedly, or let %LIST->VECTOR or LIST-TAIL do it.
+      (if (null? maybe-start+end)       ; Oughta use CASE-LAMBDA.
+          (%list->vector lst)           ;+++
+          ;; We can't use LET-VECTOR-START+END, because we're using the
+          ;; bounds of a _list_, not a vector.
+          (let*-optionals maybe-start+end
+              ((start 0)
+               (end (length lst)))      ; Ugh -- LENGTH
+            (let ((start (check-type nonneg-int? start list->vector))
+                  (end   (check-type nonneg-int? end   list->vector)))
+              ((lambda (f)
+                 (vector-unfold f (- end start) (list-tail lst start)))
+               (lambda (index l)
+                 (cond ((null? l)
+                        (error "list was too short"
+                               `(list was ,lst)
+                               `(attempted end was ,end)
+                               `(while calling ,list->vector)))
+                       ((pair? l)
+                        (values (car l) (cdr l)))
+                       (else
+                        ;; Make this look as much like what CHECK-TYPE
+                        ;; would report as possible.
+                        (error "erroneous value"
+                               ;; We want SRFI 1's PROPER-LIST?, but it
+                               ;; would be a waste to link all of SRFI
+                               ;; 1 to this module for only the single
+                               ;; function PROPER-LIST?.
+                               (list list? lst)
+                               `(while calling
+                                 ,list->vector))))))))))))
 
 ;;; (REVERSE-LIST->VECTOR <list> [<start> <end>]) -> vector
 ;;;   Produce a vector containing the elements in LIST, which must be a
@@ -1296,26 +1294,23 @@
 ;;;
 ;;; This also diverges on circular lists unless, again, LENGTH returns
 ;;; something that makes - bork.
-(define reverse-list->vector
-  (case-lambda
-    [(lst)
-     (reverse-list->vector lst 0 (length lst))]
-    [(lst start)
-     (reverse-list->vector lst start (length lst))]
-    [(lst start end)
-     (let ((start (check-type nonneg-int? start 'reverse-list->vector))
-           (end   (check-type nonneg-int? end   'reverse-list->vector)))
-       ((lambda (f)
-          (vector-unfold-right f (- end start) (list-tail lst start)))
-        (lambda (index l)
-          (cond ((null? l)
-                 (error "list too short"
-                        `(list was ,lst)
-                        `(attempted end was ,end)
-                        `(while calling ,reverse-list->vector)))
-                ((pair? l)
-                 (values (car l) (cdr l)))
-                (else
-                 (error "erroneous value"
-                        (list list? lst)
-                        `(while calling ,reverse-list->vector)))))))]))
+(define (reverse-list->vector lst . maybe-start+end)
+  (let*-optionals maybe-start+end
+      ((start 0)
+       (end (length lst)))              ; Ugh -- LENGTH
+    (let ((start (check-type nonneg-int? start reverse-list->vector))
+          (end   (check-type nonneg-int? end   reverse-list->vector)))
+      ((lambda (f)
+         (vector-unfold-right f (- end start) (list-tail lst start)))
+       (lambda (index l)
+         (cond ((null? l)
+                (error "list too short"
+                       `(list was ,lst)
+                       `(attempted end was ,end)
+                       `(while calling ,reverse-list->vector)))
+               ((pair? l)
+                (values (car l) (cdr l)))
+               (else
+                (error "erroneous value"
+                       (list list? lst)
+                       `(while calling ,reverse-list->vector)))))))))

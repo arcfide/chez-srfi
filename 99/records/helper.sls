@@ -1,3 +1,4 @@
+#!r6rs
 ;; Copyright (C) William D Clinger 2008. All Rights Reserved.
 ;;
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,15 +20,12 @@
 ;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ; This library breaks a circular interdependence between the
-; procedural and inspection libraries.
+; procedural and inspection layers.
 
-#!r6rs
 (library (srfi :99 records helper)
-  (export
-    rtd?)
-  (import
-    (rnrs base)
-    (rnrs records procedural))
+  (export rtd?)
+  (import (rnrs base) (rnrs records procedural))
 
   (define rtd? record-type-descriptor?)
-)
+
+  )

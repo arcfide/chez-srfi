@@ -1,22 +1,23 @@
-;; Copyright (c) 2009 Derick Eddington.  All rights reserved.  Licensed under an
-;; MIT-style license.  My license is in the file named LICENSE from the original
-;; collection this file is distributed with.  If this file is redistributed with
-;; some other collection, my license must also be included.
-
 #!r6rs
+;; Copyright 2010 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
+
+;; TODO: Are there any issues w.r.t. R6RS Unicode support when using the
+;; pre-R6RS reference implementation?  I suspect there are.
+
 (library (srfi :14 char-sets)
   (export
     ; Predicates & comparison
     char-set? char-set= char-set<= char-set-hash
     ; Iterating over character sets
-    char-set-cursor char-set-ref char-set-cursor-next end-of-char-set? 
+    char-set-cursor char-set-ref char-set-cursor-next end-of-char-set?
     char-set-fold char-set-unfold char-set-unfold!
     char-set-for-each char-set-map
     ; Creating character sets
     char-set-copy char-set
     list->char-set  string->char-set
     list->char-set! string->char-set!
-    char-set-filter  ucs-range->char-set 
+    char-set-filter  ucs-range->char-set
     char-set-filter! ucs-range->char-set!
     ->char-set
     ; Querying character sets
@@ -39,34 +40,21 @@
     char-set:empty       char-set:full
     )
   (import
-    (except (rnrs) error define-record-type)
+    (except (rnrs) define-record-type)
     (rnrs mutable-strings)
     (rnrs r5rs)
-    (prefix (srfi :23 error) ER:)
+    (srfi :23 error tricks)
     (srfi :9 records)
-    (srfi :39 parameters)
+    (srfi private check-arg)
     (srfi private let-opt)
     (srfi private include))
-  
+
+  ;; TODO: FIXME: These two seem incorrect.
   (define (%latin1->char i)
     (integer->char i))
-  
   (define (%char->latin1 c)
     (char->integer c))
-  
-  (define (error . args)
-    (parameterize ([ER:error-who 
-                    "(library (srfi :14 char-sets))"])
-      (apply ER:error args)))
-    
-  (define-syntax check-arg
-    (lambda (stx)
-      (syntax-case stx ()
-        [(_ pred val caller)
-         (identifier? #'val)
-         #'(unless (pred val)
-             (parameterize ([ER:error-who caller])
-               (ER:error "check-arg failed" val)))])))
-  
-  (include/resolve ("srfi" "14") "srfi-14.scm")
+
+  (SRFI-23-error->R6RS "(library (srfi :14 char-sets))"
+   (include/resolve ("srfi" "%3a14") "srfi-14.scm"))
 )

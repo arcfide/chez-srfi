@@ -1,9 +1,7 @@
-;; Copyright (c) 2009 Derick Eddington.  All rights reserved.  Licensed under an
-;; MIT-style license.  My license is in the file named LICENSE from the original
-;; collection this file is distributed with.  If this file is redistributed with
-;; some other collection, my license must also be included.
-
 #!r6rs
+;; Copyright 2009 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
+
 (library (srfi :43 vectors)
   (export
     ;;; * Constructors
@@ -30,41 +28,43 @@
     ;;; * Mutators
     vector-set!
     vector-swap!
-    vector-fill!
+    (rename (my:vector-fill! vector-fill!))
     vector-reverse!
     vector-copy!          vector-reverse-copy!
     ;;; * Conversion
-    vector->list          reverse-vector->list
-    list->vector          reverse-list->vector )
+    (rename (my:vector->list vector->list))          reverse-vector->list
+    (rename (my:list->vector list->vector))          reverse-list->vector )
   (import
-    (except (rnrs) error vector-map vector-for-each vector-fill! vector->list
-                   list->vector)
-    (prefix (only (rnrs) vector-fill! vector->list list->vector) rnrs:)
+    (except (rnrs) vector-map vector-for-each)
     (rnrs r5rs)
-    (prefix (srfi :23 error) ER:)
-    (srfi :39 parameters)
+    (srfi :23 error tricks)
     (srfi :8 receive)
+    (for (srfi private vanish) expand)
     (srfi private include))
-  
-  (define (error . args)
-    (parameterize ([ER:error-who 
-                    "(library (srfi :43 vectors))"])
-      (apply ER:error args)))
-  
-  (define-syntax check-type
-    (lambda (stx)
-      (syntax-case stx ()
-        [(_ pred? value callee)
-         (if (identifier? #'value)
-           #'(if (pred? value)
-               value
-               (parameterize ([ER:error-who callee])
-                 (ER:error "erroneous value" value)))
-           #'(let ([v value])
-               (if (pred? v)
-                 v
-                 (parameterize ([ER:error-who callee])
-                   (ER:error "erroneous value" v)))))])))
-    
-  (include/resolve ("srfi" "43") "vector-lib.scm")
+
+  ;; I do these let-syntax tricks so the original vector-lib.scm file does
+  ;; not have to be modified at all.
+  (let-syntax
+      ((define
+        (let ((vd (vanish-define define
+                   (make-vector vector vector? vector-ref vector-set! vector-length))))
+          (lambda (stx)
+            (define (rename? id)
+              (memp (lambda (x) (free-identifier=? id x))
+                    (list #'vector-fill! #'vector->list #'list->vector)))
+            (define (rename id)
+              (datum->syntax id
+               (string->symbol
+                (string-append "my:" (symbol->string (syntax->datum id))))))
+            (syntax-case stx ()
+              ((_ name . r)
+               (and (identifier? #'name)
+                    (rename? #'name))
+               #`(define #,(rename #'name) . r))
+              (_ (vd stx))))))
+       (define-syntax
+        (vanish-define define-syntax
+         (receive))))
+    (SRFI-23-error->R6RS "(library (srfi :43 vectors))"
+     (include/resolve ("srfi" "%3a43") "vector-lib.scm")))
 )

@@ -1,9 +1,7 @@
-;; Copyright (c) 2009 Derick Eddington.  All rights reserved.  Licensed under an
-;; MIT-style license.  My license is in the file named LICENSE from the original
-;; collection this file is distributed with.  If this file is redistributed with
-;; some other collection, my license must also be included.
-
 #!r6rs
+;; Copyright 2009 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
+
 (library (srfi :37 args-fold)
   (export
     args-fold
@@ -39,7 +37,7 @@
             (assertion-violation 'option "invalid arguments" n ra oa p))))))
 
   (define args-fold
-    (let ([option make-option])
-      (include/resolve ("srfi" "37") "srfi-37-reference.scm")
+    (let ((option make-option))
+      (include/resolve ("srfi" "%3a37") "srfi-37-reference.scm")
       args-fold))
 )

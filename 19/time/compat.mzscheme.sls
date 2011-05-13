@@ -1,34 +1,50 @@
-;; Copyright (c) 2009 Derick Eddington.  All rights reserved.  Licensed under an
-;; MIT-style license.  My license is in the file named LICENSE from the original
-;; collection this file is distributed with.  If this file is redistributed with
-;; some other collection, my license must also be included.
-
 #!r6rs
+;; Copyright 2010 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
+
 (library (srfi :19 time compat)
   (export
-    format
-    host:time-resolution
-    host:current-time 
-    host:time-nanosecond 
-    host:time-second 
-    host:time-gmt-offset)
+    time-resolution
+    timezone-offset
+    current-time
+    cumulative-thread-time
+    cumulative-process-time
+    cumulative-gc-time
+    time-nanosecond
+    time-second)
   (import
     (rnrs base)
-    (only (scheme base) format current-inexact-milliseconds date-time-zone-offset
-                        seconds->date current-seconds))
+    (only (scheme base)
+          current-seconds
+          seconds->date
+          date-time-zone-offset
+          current-inexact-milliseconds
+          current-thread
+          current-process-milliseconds
+          current-gc-milliseconds))
 
   ;; MzScheme uses milliseconds, so our resolution in nanoseconds is #e1e6
-  (define host:time-resolution #e1e6)
-  
-  (define (host:current-time)
-    (exact (floor (current-inexact-milliseconds))))
-  
-  (define (host:time-nanosecond t)
-    (* (mod t 1000) #e1e6))
-  
-  (define (host:time-second t)
-    (div t 1000))
-  
-  (define (host:time-gmt-offset t)
-    (date-time-zone-offset (seconds->date (host:time-second t))))
+  (define time-resolution #e1e6)
+
+  (define timezone-offset
+    (date-time-zone-offset (seconds->date (current-seconds))))
+
+  (define (millis->repr x)
+    (let-values (((d m) (div-and-mod x 1000)))
+      (cons d (* m #e1e6))))
+
+  (define (current-time)
+    (millis->repr (exact (floor (current-inexact-milliseconds)))))
+
+  (define (cumulative-thread-time)
+    (millis->repr (current-process-milliseconds (current-thread))))
+
+  (define (cumulative-process-time)
+    (millis->repr (current-process-milliseconds #F)))
+
+  (define (cumulative-gc-time)
+    (millis->repr (current-gc-milliseconds)))
+
+  (define time-nanosecond cdr)
+  (define time-second car)
 )

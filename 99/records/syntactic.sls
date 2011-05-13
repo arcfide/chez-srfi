@@ -1,3 +1,4 @@
+#!r6rs
 ;; Copyright (C) William D Clinger 2008. All Rights Reserved.
 ;;
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,7 +19,6 @@
 ;; CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 ;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#!r6rs
 (library (srfi :99 records syntactic)
 
   (export define-record-type)
@@ -39,12 +39,69 @@
 
   (define-syntax define-record-type-helper0
     (lambda (x)
+
+      ; Given syntax objects, passes them to helper macro.
+
+      (define (construct-record-type-definitions
+               tname fields parent cspec pred afields mfields)
+        (let ()
+
+          (define (frob x)
+            (cond ((identifier? x)
+                   x)
+                  ((pair? x)
+                   (cons (frob (car x)) (frob (cdr x))))
+                  ((vector? x)
+                   (vector-map frob x))
+                  ((symbol? x)
+                   (datum->syntax tname x))
+                  (else
+                   x)))
+
+          #`(#,(frob #'define-record-type-helper)
+             #,(frob tname)
+             #,(frob fields)
+             #,(frob parent)
+             #,(frob cspec)
+             #,(frob pred)
+             #,(frob afields)
+             #,(frob mfields))))
+
+      ; Given a syntax object that represents a non-empty list,
+      ; returns the syntax object for its first element.
+
+      (define (syntax-car x)
+        (syntax-case x ()
+         ((x0 x1 ...)
+          #'x0)))
+
+      ; Given a syntax object that represents a non-empty list,
+      ; returns the syntax object obtained by omitting the first
+      ; element of that list.
+
+      (define (syntax-cdr x)
+        (syntax-case x ()
+         ((x0 x1 ...)
+          #'(x1 ...))))
+
+      ; Given a syntax object that represents a non-empty list,
+      ; returns the corresponding list of syntax objects.
+
+      (define (syntax->list x)
+        (syntax-case x ()
+         (()
+          '())
+         ((x0 . x1)
+          (cons #'x0 (syntax->list #'x1)))))
+
       (define (complain)
         (syntax-violation 'define-record-type "illegal syntax" x))
+
+      ; tname and pname are always identifiers here.
+
       (syntax-case x ()
        ((_ tname pname constructor-spec predicate-spec . field-specs)
         (let* ((type-name (syntax->datum #'tname))
-               (parent (syntax->datum #'pname))
                (cspec (syntax->datum #'constructor-spec))
                (pspec (syntax->datum #'predicate-spec))
                (fspecs (syntax->datum #'field-specs))
@@ -54,32 +111,41 @@
                        (symbol->string type-name)))
                (constructor-name
                 (cond ((eq? cspec #f)
-                       #f)
+                       #'constructor-spec)
                       ((eq? cspec #t)
-                       (string->symbol
-                        (string-append "make-" type-name-string)))
+                       (datum->syntax
+                        #'tname
+                        (string->symbol
+                         (string-append "make-" type-name-string))))
                       ((symbol? cspec)
-                       cspec)
-                      ((pair? cspec)
-                       (car cspec))
+                       #'constructor-spec)
+                      ((and (pair? cspec) (symbol? (car cspec)))
+                       (syntax-car #'constructor-spec))
                       (else (complain))))
                (constructor-args
                 (cond ((pair? cspec)
                        (if (not (for-all symbol? cspec))
                            (complain)
-                           (list->vector (cdr cspec))))
+                           (list->vector
+                            (syntax->list (syntax-cdr #'constructor-spec)))))
                       (else #f)))
+               (new-constructor-spec
+                (if constructor-args
+                    (list constructor-name constructor-args)
+                    constructor-name))
                (predicate-name
                 (cond ((eq? pspec #f)
-                       #f)
+                       #'predicate-spec)
                       ((eq? pspec #t)
-                       (string->symbol
-                        (string-append type-name-string "?")))
+                       (datum->syntax
+                        #'tname
+                        (string->symbol
+                         (string-append type-name-string "?"))))
                       ((symbol? pspec)
-                       pspec)
+                       #'predicate-spec)
                       (else (complain))))
                (field-specs
-                (map (lambda (fspec)
+                (map (lambda (fspec field-spec)
                        (cond ((symbol? fspec)
                               (list 'immutable
                                     fspec
@@ -111,49 +177,53 @@
                              ((null? (cddr fspec))
                               (list 'immutable
                                     (car fspec)
-                                    (cadr fspec)))
+                                    (syntax-car (syntax-cdr field-spec))))
                              ((null? (cdddr fspec))
-                              (cons 'mutable fspec))
+                              (list 'mutable
+                                    (car fspec)
+                                    (syntax-car (syntax-cdr field-spec))
+                                    (syntax-car (syntax-cdr
+                                                 (syntax-cdr field-spec)))))
                              (else (complain))))
-                     fspecs))
-
+                     fspecs
+                     (syntax->list #'field-specs)))
+  
                (fields (list->vector (map cadr field-specs)))
-
+  
                (accessor-fields
                 (map (lambda (x) (list (caddr x) (cadr x)))
                      (filter (lambda (x) (>= (length x) 3))
                              field-specs)))
-
+  
                (mutator-fields
                 (map (lambda (x) (list (cadddr x) (cadr x)))
                      (filter (lambda (x) (= (length x) 4))
                              field-specs))))
-
-          (datum->syntax
+  
+          (construct-record-type-definitions
            #'tname
-           `(,#'define-record-type-helper
-             ,type-name ,fields ,parent
-             ,(if constructor-args
-                  (list constructor-name constructor-args)
-                  constructor-name)
-             ,predicate-name
-             ,accessor-fields ,mutator-fields)))))))
-
+           fields
+           #'pname
+           new-constructor-spec
+           predicate-name
+           accessor-fields
+           mutator-fields))))))
+  
   (define-syntax define-record-type-helper
     (syntax-rules ()
-
+  
      ((_ type-name fields parent #f predicate
          ((accessor field) ...) ((mutator mutable-field) ...))
       (define-record-type-helper
        type-name fields parent ignored predicate
        ((accessor field) ...) ((mutator mutable-field) ...)))
-
+  
      ((_ type-name fields parent constructor #f
          ((accessor field) ...) ((mutator mutable-field) ...))
       (define-record-type-helper
        type-name fields parent constructor ignored
        ((accessor field) ...) ((mutator mutable-field) ...)))
-
+  
      ((_ type-name fields parent (constructor args) predicate
          ((accessor field) ...) ((mutator mutable-field) ...))
       (begin (define type-name (make-rtd 'type-name 'fields parent))
@@ -163,7 +233,7 @@
              ...
              (define mutator (rtd-mutator type-name 'mutable-field))
              ...))
-
+  
      ((_ type-name fields parent constructor predicate
          ((accessor field) ...) ((mutator mutable-field) ...))
       (begin (define type-name (make-rtd 'type-name 'fields parent))
@@ -174,4 +244,4 @@
              (define mutator (rtd-mutator type-name 'mutable-field))
              ...))))
 
-)
+  ) ; srfi :99 records syntactic

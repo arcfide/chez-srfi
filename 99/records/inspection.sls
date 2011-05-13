@@ -1,3 +1,4 @@
+#!r6rs
 ;; Copyright (C) William D Clinger 2008. All Rights Reserved.
 ;;
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,7 +19,6 @@
 ;; CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 ;; SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#!r6rs
 (library (srfi :99 records inspection)
 
   (export record? record-rtd
@@ -31,15 +31,15 @@
           (srfi :99 records helper))
 
   ; The record? predicate is already defined by (rnrs records inspection).
-
+  
   ; The record-rtd procedure is already defined by (rnrs records inspection).
-
+  
   (define rtd-name record-type-name)
-
+  
   (define rtd-parent record-type-parent)
-
+  
   (define rtd-field-names record-type-field-names)
-
+  
   (define (rtd-all-field-names rtd)
     (define (loop rtd othernames)
       (let ((parent (rtd-parent rtd))
@@ -50,7 +50,7 @@
             (loop parent names)
             (list->vector names))))
     (loop rtd '()))
-
+  
   (define (rtd-field-mutable? rtd0 fieldname)
     (define (loop rtd)
       (if (rtd? rtd)
@@ -63,4 +63,4 @@
                                "illegal argument" rtd0 fieldname)))
     (loop rtd0))
 
-)
+  )

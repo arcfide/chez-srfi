@@ -1,9 +1,7 @@
-;; Copyright (c) 2009 Derick Eddington.  All rights reserved.  Licensed under an
-;; MIT-style license.  My license is in the file named LICENSE from the original
-;; collection this file is distributed with.  If this file is redistributed with
-;; some other collection, my license must also be included.
-
 #!r6rs
+;; Copyright 2009 Derick Eddington.  My MIT-style license is in the file named
+;; LICENSE from the original collection this file is distributed with.
+
 (library (srfi :64 testing)
   (export
     test-begin
@@ -39,25 +37,22 @@
     ;; but can be called to construct more complex ones.
     test-on-group-begin-simple test-on-group-end-simple
     test-on-bad-count-simple test-on-bad-end-name-simple
-    test-on-final-simple test-on-test-end-simple test-pred)
+    test-on-final-simple test-on-test-end-simple)
   (import
-    (except (rnrs base) error)
+    (rnrs base)
     (rnrs control)
     (rnrs exceptions)
     (rnrs io simple)
     (rnrs lists)
     (rename (rnrs eval) (eval rnrs:eval))
     (rnrs mutable-pairs)
-    (rnrs syntax-case)
     (srfi :0 cond-expand)
     (only (srfi :1 lists) reverse!)
     (srfi :6 basic-string-ports)
     (srfi :9 records)
     (srfi :39 parameters)
+    (srfi :23 error tricks)
     (srfi private include))
-
-  (define (error msg)
-    (assertion-violation "(library (srfi :64 testing))" msg))
 
   (define (eval form)
     (rnrs:eval form (environment '(rnrs)
@@ -70,6 +65,9 @@
     (case-lambda
       (() test-log-to-file)
       ((val) (set! test-log-to-file val))))
-  
-  (include/resolve ("srfi" "64") "testing.scm")
+
+  (SRFI-23-error->R6RS "(library (srfi :64 testing))"
+   (include/resolve ("srfi" "%3a64") "testing.scm"))
+
+  (set! test-log-to-file #F)
 )

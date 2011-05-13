@@ -1,3 +1,9 @@
+;; Modified by Derick Eddington to improve the print-outs.  All lines of printed
+;; expected results (for failed checks) are commented-out so they don't break
+;; syntactic-datum delimiting, so a print-out can be programmatically read and
+;; processed.  When a non-default equality predicate is used, (=> <expr>) is
+;; printed.
+
 ; <PLAINTEXT>
 ; Copyright (c) 2005-2006 Sebastian Egner.
 ; 
@@ -21,7 +27,6 @@
 ; WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ; 
 ; -----------------------------------------------------------------------
-; Modified by Derick Eddington to print things a little differently.
 ; 
 ; Lightweight testing (reference implementation)
 ; ==============================================
@@ -42,7 +47,7 @@
 
 ; -- utilities --
 
-#;(define check:write write)
+(define check:write write)
 
 (define (print/header/padded x header padding)
   (define (print/lines)
@@ -74,22 +79,21 @@
 
 ; -- mode --
 
-(define check:mode 
-  (make-parameter 'report
-                  (lambda (v) (case v
-                                ((off)           0)
-                                ((summary)       1)
-                                ((report-failed) 10)
-                                ((report)        100)
-                                (else (error "unrecognized mode" v))))))
+(define check:mode #f)
 
 (define (check-set-mode! mode)
-  (check:mode mode))
+  (set! check:mode
+        (case mode
+          ((off)           0)
+          ((summary)       1)
+          ((report-failed) 10)
+          ((report)        100)
+          (else (error "unrecognized mode" mode)))))
 
 ; -- state --
 
-(define check:correct 0)
-(define check:failed '())
+(define check:correct #f)
+(define check:failed   #f)
 
 (define (check-reset!)
   (set! check:correct 0)
@@ -110,14 +114,16 @@
   (check:write expression)
   (if pred
     (begin (print/header/padded pred "(=> " "    ")
-           (display ")\n"))
-    (display "=>\n")))
+           (display ")"))
+    (display "=>"))
+  (newline))
 
 (define (check:report-actual-result actual-result)
-  (check:write actual-result))
+  (check:write actual-result)
+  (display ";; "))
 
 (define (check:report-correct cases)
-  (display "; correct")
+  (display "correct")
   (if (not (= cases 1))
       (begin (display " (")
              (display cases)
@@ -125,21 +131,22 @@
   (newline))
 
 (define (check:report-failed expected-result)
-  (display "; *** failed ***\n")
-  (print/header/padded expected-result "; expected result: "
-                                       ";                  ")
+  (display "*** failed ***")
+  (newline)
+  (print/header/padded expected-result ";; expected result: "
+                                       ";;                  ")
   (newline))
 
 (define (check-report)
-  (if (>= (check:mode) 1)
+  (if (>= check:mode 1)
       (begin
         (newline)
-        (display "; *** checks *** : ")
+        (display ";; *** checks *** : ")
         (display check:correct)
         (display " correct, ")
         (display (length check:failed))
         (display " failed.")
-        (if (or (null? check:failed) (<= (check:mode) 1))
+        (if (or (null? check:failed) (<= check:mode 1))
             (newline)
             (let* ((w (car (reverse check:failed)))
                    (expression (car w))
@@ -159,26 +166,29 @@
 ; -- simple checks --
 
 (define (check:proc expression thunk equal equal-expr expected-result)
-  (case (check:mode)
+  (define equal-expr*
+    (and (not (eq? equal? equal))
+         equal-expr))
+  (case check:mode
     ((0) #f)
     ((1)
      (let ((actual-result (thunk)))
        (if (equal actual-result expected-result)
            (check:add-correct!)
            (check:add-failed!
-            expression actual-result expected-result equal-expr))))
+            expression actual-result expected-result equal-expr*))))
     ((10)
      (let ((actual-result (thunk)))
        (if (equal actual-result expected-result)
            (check:add-correct!)
            (begin
-             (check:report-expression expression equal-expr)
+             (check:report-expression expression equal-expr*)
              (check:report-actual-result actual-result)
              (check:report-failed expected-result)
              (check:add-failed!
-              expression actual-result expected-result equal-expr)))))
+              expression actual-result expected-result equal-expr*)))))
     ((100)
-     (check:report-expression expression equal-expr)
+     (check:report-expression expression equal-expr*)
      (let ((actual-result (thunk)))
        (check:report-actual-result actual-result)
        (if (equal actual-result expected-result)
@@ -186,18 +196,17 @@
                   (check:add-correct!))
            (begin (check:report-failed expected-result)
                   (check:add-failed!
-                   expression actual-result expected-result equal-expr)))))
-    (else (error "unrecognized check:mode" (check:mode))))
+                   expression actual-result expected-result equal-expr*)))))
+    (else (error "unrecognized check:mode" check:mode)))
   (if #f #f))
 
 (define-syntax check
   (syntax-rules (=>)
     ((check expr => expected)
-     (if (>= (check:mode) 1)
-	 (check:proc 'expr (lambda () expr) equal? #F expected)))
+     (check expr (=> equal?) expected))
     ((check expr (=> equal) expected)
-     (if (>= (check:mode) 1)
-	 (check:proc 'expr (lambda () expr) equal 'equal expected)))))
+     (if (>= check:mode 1)
+	 (check:proc 'expr (lambda () #F expr) equal 'equal expected)))))
 
 ; -- parametric checks --
 
@@ -209,12 +218,12 @@
 	(cases (car (cddddr w)))
         (equal-expr (cadr (cddddr w))))
     (if correct?
-        (begin (if (>= (check:mode) 100)
+        (begin (if (>= check:mode 100)
                    (begin (check:report-expression expression equal-expr)
                           (check:report-actual-result actual-result)
                           (check:report-correct cases)))
                (check:add-correct!))
-        (begin (if (>= (check:mode) 10)
+        (begin (if (>= check:mode 10)
                    (begin (check:report-expression expression equal-expr)
                           (check:report-actual-result actual-result)
                           (check:report-failed expected-result)))
@@ -224,13 +233,16 @@
 (define-syntax check-ec:make
   (syntax-rules (=>)
     ((check-ec:make qualifiers expr (=> equal) expected (arg ...))
-     (if (>= (check:mode) 1)
+     (if (>= check:mode 1)
          (check:proc-ec
-	  (let ((cases 0))
+	  (let* ((cases 0)
+                 (eq-p equal)
+                 (equal-expr (and (not (eq? equal? eq-p))
+                                  'equal)))
 	    (let ((w (first-ec 
 		      #f
 		      qualifiers
-		      (:let equal-pred equal)
+		      (:let equal-pred eq-p)
 		      (:let expected-result expected)
 		      (:let actual-result
                             (let ((arg arg) ...) ; (*)
@@ -241,7 +253,7 @@
 			    actual-result
 			    expected-result
 			    cases
-                            'equal))))
+                            equal-expr))))
 	      (if w
 		  (cons #f w)
 		  (list #t 
@@ -251,7 +263,7 @@
 			(if #f #f)
 		        (if #f #f)
 			cases
-                        'equal)))))))))
+                        equal-expr)))))))))
 
 ; (*) is a compile-time check that (arg ...) is a list
 ; of pairwise disjoint bound variables at this point.
@@ -280,3 +292,7 @@
      (check-ec (nested q1 ... q) etc ...))
     ((check-ec q1 q2             etc ...)
      (check-ec (nested q1 q2)    etc ...))))
+
+
+(check-set-mode! 'report)
+(check-reset!)
