@@ -4,4 +4,3 @@ the libraries.
 
   $ cd srfi
   $ ./link-srfis.ss .
-
