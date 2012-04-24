@@ -1,17 +1,29 @@
-#!r6rs
-;; Copyright 2009 Derick Eddington.  My MIT-style license is in the file named
-;; LICENSE from the original collection this file is distributed with.
+;;; Copyright (c) 2012 Aaron W. Hsu <arcfide@sacrideo.us>
+;;; 
+;;; Permission to use, copy, modify, and distribute this software for
+;;; any purpose with or without fee is hereby granted, provided that the
+;;; above copyright notice and this permission notice appear in all
+;;; copies.
+;;; 
+;;; THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+;;; WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+;;; WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+;;; AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+;;; DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA
+;;; OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+;;; TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+;;; PERFORMANCE OF THIS SOFTWARE.
 
 (library (srfi :38 with-shared-structure)
   (export write-with-shared-structure
           (rename (write-with-shared-structure write/ss))
           read-with-shared-structure
-          (rename (read-with-shared-structure read/ss)))
+         (rename (read-with-shared-structure read/ss)))
   (import (chezscheme))
 
-  (define write-with-shared-structure
+(define write-with-shared-structure
     (case-lambda 
-	  [(obj)
+      [(obj)
        (write-with-shared-structure obj (current-output-port))]
       [(obj port)
        (parameterize ((print-graph #T))
@@ -20,6 +32,6 @@
        (assertion-violation 'write-with-shared-structure
          "this implementation does not support optarg")]))
 
-  (define read-with-shared-structure read)
+(define read-with-shared-structure read)
 
 )

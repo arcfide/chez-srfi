@@ -24,12 +24,12 @@
           time-nanosecond
           time-second)
   (import (chezscheme))
-  
-  (define time-resolution 1)
 
-  (define (cumulative-thread-time . args)
-    (assertion-violation 'cumulative-thread-time "not implemented"))
-  
-  (define (cumulative-gc-time) (sstats-gc-cpu (statistics)))
+(define time-resolution 1)
+
+(define (cumulative-thread-time . args)
+  (assertion-violation 'cumulative-thread-time "not implemented"))
+
+(define (cumulative-gc-time) (sstats-gc-cpu (statistics)))
 
 )

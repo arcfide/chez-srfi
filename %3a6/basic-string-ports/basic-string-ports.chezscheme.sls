@@ -14,6 +14,8 @@
 ;;; TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ;;; PERFORMANCE OF THIS SOFTWARE.
 
-(library (srfi :78 lightweight-testing compat)
-  (export (rename (pretty-print check:write)))
+(library (srfi :6 basic-string-ports)
+  (export (rename (open-string-input-port open-input-string))
+          open-output-string
+          get-output-string)
   (import (chezscheme)))

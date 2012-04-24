@@ -49,10 +49,10 @@ at the Scheme Libraries project page:
 
   https://launchpad.net/scheme-libraries
 
-Currently supported systems are Ikarus, Larceny, and Ypsilon.  PLT Scheme is
-only semi-supported because it has its own "srfi" directory which conflicts with
-having another "srfi" directory; you can symlink/copy files from this collection
-into PLT's "srfi" directory.
+Currently supported systems are Chez Scheme, Ikarus, Larceny, and Ypsilon.
+PLT Scheme is only semi-supported because it has its own "srfi" directory
+which conflicts with having another "srfi" directory; you can symlink/copy
+files from this collection into PLT's "srfi" directory.
 
 For the latest development version, go to:
 
