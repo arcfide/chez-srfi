@@ -14,7 +14,7 @@
 ;;; TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ;;; PERFORMANCE OF THIS SOFTWARE.
 
-(library (srfi :6 basic-string-ports)
+(library (srfi :6 basic-string-ports compat)
   (export (rename (open-string-input-port open-input-string))
           open-output-string
           get-output-string)
