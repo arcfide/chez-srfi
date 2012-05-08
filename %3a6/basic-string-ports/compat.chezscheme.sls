@@ -15,7 +15,5 @@
 ;;; PERFORMANCE OF THIS SOFTWARE.
 
 (library (srfi :6 basic-string-ports compat)
-  (export (rename (open-string-input-port open-input-string))
-          open-output-string
-          get-output-string)
+  (export open-output-string get-output-string)
   (import (chezscheme)))
