@@ -15,5 +15,8 @@
 ;;; PERFORMANCE OF THIS SOFTWARE.
 
 (library (srfi private include compat)
-  (export (rename (source-directories search-paths)))
-  (import (only (chezscheme) source-directories)))
+  (export search-paths)
+  (import (rnrs) (only (chezscheme) library-directories))
+
+  (define (search-paths) (map car (library-directories)))
+)
