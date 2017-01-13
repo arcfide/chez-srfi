@@ -35,7 +35,7 @@
                   (syntax->datum #'(lib-path* ... file-path)))
          (let ((p (apply string-append 
                          (map (lambda (ps) (string-append "/" ps)) 
-                              (syntax->datum #'(lib-path* ... file-path)))))
+                              (cdr (syntax->datum #'(lib-path* ... file-path))))))
                (sp (search-paths)))
            (let loop ((search sp))
              (if (null? search)
