@@ -85,6 +85,11 @@
 
 ; exported syntax
 
+(define-syntax (<> x)
+  (syntax-violation #f "misplaced aux keyword <>"))
+(define-syntax (<...> x)
+  (syntax-violation #f "misplaced aux keyword <...>"))
+
 (define-syntax cut
   (syntax-rules ()
     ((cut . slots-or-exprs)
