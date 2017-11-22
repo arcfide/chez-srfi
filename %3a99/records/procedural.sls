@@ -51,7 +51,10 @@
                      (if (symbol? fieldspec)
                          (list 'mutable fieldspec)
                          fieldspec))
-                   fieldspecs))))
+                   ;; NB: hack to get srfi :131 working
+                   (if (list? fieldspecs)
+                       (list->vector fieldspecs)
+                       fieldspecs)))))
   
   (define rtd? record-type-descriptor?)
   
