@@ -16,7 +16,7 @@
 
 (library (srfi :19 time compat)
   (export time-resolution
-          (rename (date-zone-offset timezone-offset))
+          timezone-offset
           current-time
           cumulative-thread-time
           (rename (cpu-time cumulative-process-time))
@@ -31,5 +31,7 @@
   (assertion-violation 'cumulative-thread-time "not implemented"))
 
 (define (cumulative-gc-time) (sstats-gc-cpu (statistics)))
+
+(define timezone-offset (date-zone-offset (time-utc->date (current-time))))
 
 )
