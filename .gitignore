@@ -2,3 +2,5 @@
 :*
 srfi
 .bzrignore
+.sw?
+.*.sw?
