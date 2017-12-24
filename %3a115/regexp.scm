@@ -644,7 +644,7 @@
                (memq (car sre)
                      '(char-set / char-range & and ~ complement - difference))
                (and (memq (car sre)
-                          '(|\|| or w/case w/nocase w/unicode w/ascii))
+                          '(\x7C; or w/case w/nocase w/unicode w/ascii))
                     (every char-set-sre? (cdr sre)))))))
 
 (define (non-greedy-sre? sre)
@@ -685,7 +685,7 @@
                              (+ 1 (char->integer (cdr x)))))
                           (sre-flatten-ranges (cdr sre))))))
             ((& and) (apply char-set-intersection (map ->cs (cdr sre))))
-            ((|\|| or) (apply char-set-union (map ->cs (cdr sre))))
+            ((\x7C; or) (apply char-set-union (map ->cs (cdr sre))))
             ((~ complement) (char-set-complement (->cs `(or ,@(cdr sre)))))
             ((- difference) (char-set-difference (->cs (cadr sre))
                                                  (->cs `(or ,@(cddr sre)))))
@@ -804,7 +804,7 @@
                     (n3 (->rx (cons 'seq (cddr sre)) flags next)))
                (state-next1-set! n2 n3)
                n1)))
-        ((or |\||)
+        ((or \x7C;)
          ;; Alternation.  An empty alternation always fails.
          ;; Otherwise we fork between any of the alternations, each
          ;; continuing to next.
