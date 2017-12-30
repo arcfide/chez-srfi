@@ -1,6 +1,9 @@
 .bzr
 :*
+*!*
+*\**
 srfi
 .bzrignore
 .sw?
 .*.sw?
+and-let*.sls
