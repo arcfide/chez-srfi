@@ -1,5 +1,5 @@
 (library (srfi :17 generalized-set!)
-  (export getter-and-setter set!
+  (export getter-with-setter set!
           car cdr
           caar cadr cdar cddr
           caaar caadr cadar caddr cdaar cdadr cddar cdddr
@@ -20,24 +20,24 @@
           symbol-hashtable-ref list-ref)
   (import (rename (chezscheme) (set! cs:set!)) (srfi :17 helpers))
 
-  (define getter-and-setter-prop)
+  (define getter-with-setter-prop)
 
-  (define-syntax getter-and-setter
+  (define-syntax getter-with-setter
     (syntax-rules ()
       [(_ getter setter)
-       (define-property getter getter-and-setter-prop #'setter)]))
+       (define-property getter getter-with-setter-prop #'setter)]))
 
   (define-syntax getters-and-setters
     (syntax-rules ()
       [(_ [getter setter] ...)
-       (begin (getter-and-setter getter setter) ...)]))
+       (begin (getter-with-setter getter setter) ...)]))
 
   (define-syntax set!
     (lambda (x)
       (syntax-case x ()
         [(_ (getter e0 e1 ...) v)
          (lambda (r)
-           (with-syntax ([setter (r #'getter #'getter-and-setter-prop)])
+           (with-syntax ([setter (r #'getter #'getter-with-setter-prop)])
              (if (datum setter)
                  #'(setter e0 e1 ... v)
                  (syntax-violation 'set! "no setter configured for getter" #'getter x))))]

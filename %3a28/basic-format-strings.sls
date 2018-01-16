@@ -1,4 +1,4 @@
-(library (srfi :28 format)
+(library (srfi :28 basic-format-strings)
   (export format)
   (import (rnrs) (srfi :6))
 
