@@ -3,6 +3,8 @@
 (library (srfi :26)
   (export
     cut
-    cute)
+    cute
+    <>
+    <...>)
   (import (srfi :26 cut))
 )
