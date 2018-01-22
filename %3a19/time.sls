@@ -155,6 +155,8 @@
 
   (define (tm:local-tz-offset) host:timezone-offset)
 
+  (define eof (eof-object))
+
   (let-syntax ((define (vanish-define define (tm:time-error-types
                                               tm:time-error
                                               tm:get-time-of-day
