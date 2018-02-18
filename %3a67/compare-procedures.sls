@@ -19,12 +19,11 @@
     refine-compare select-compare string-compare string-compare-ci
     symbol-compare vector-compare vector-compare-as-list)
   (import
-    (rnrs)
+    (except (rnrs) error)
     (only (rnrs r5rs) modulo)
     (only (srfi :27 random-bits) random-integer)
-    (srfi :23 error tricks)
+    (srfi :23 error)
     (srfi private include))
 
-  (SRFI-23-error->R6RS "(library (srfi :67 compare-procedures))"
-   (include/resolve ("srfi" "%3a67") "compare.scm"))
+  (include/resolve ("srfi" "%3a67") "compare.scm")
 )

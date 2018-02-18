@@ -93,16 +93,6 @@
        (time=? t3 (time-difference t1 t2))
        (time=? t4 (time-difference t2 t1))))))
 
-(define-s19-test! "Time difference, nanoseconds"
-  (lambda ()
-    (let ((t1 (make-time time-utc 1000 3000))
-          (t2 (make-time time-utc 0 3000))
-          (t3 (make-time time-duration 1000 0))
-          (t4 (make-time time-duration 999999000 -1)))
-      (and
-        (time=? t3 (time-difference t1 t2))
-        (time=? t4 (time-difference t2 t1))))))
-
 
 (define (test-one-utc-tai-edge utc tai-diff tai-last-diff)
   (let* (;; right on the edge they should be the same
