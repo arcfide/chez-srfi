@@ -20,7 +20,7 @@
                   (hashtable-update! rnrs:hashtable-update!)
                   (hashtable-copy rnrs:hashtable-copy)
                   (hashtable-clear! rnrs:hashtable-clear!))
-          (srfi :126 r6rs-hashtables-helpers)
+          (srfi :126 r6rs-hashtables helpers)
           (only (srfi :27) random-integer)
           (only (srfi :1) fold)
           (only (rnrs r5rs) modulo)

@@ -35,14 +35,16 @@
           regexp-match-submatch regexp-match-submatch/list
           regexp-match-submatch-start regexp-match-submatch-end
           regexp-match->list regexp-match->sexp)
-  (import (rename (except (rnrs) define-record-type string-ci-hash string-hash)
+  (import (rename (except (rnrs) define-record-type string-ci-hash string-hash
+                          error)
                   (exists any))
           (only (rnrs r5rs) quotient)
           (rnrs mutable-pairs)
           (srfi :9 records)
           (srfi :14 char-sets)
+          (srfi :23 error)
           (srfi :69 basic-hash-tables)
-          (srfi :115 boundary)
+          (srfi :115 regexp boundary)
           (srfi private include))
 
   (define %char-set:letter
