@@ -1,4 +1,4 @@
-(library (srfi :126 r6rs-hashtables-helpers)
+(library (srfi :126 r6rs-hashtables helpers)
   (export make-weak-eq-hashtable weak-eq-hashtables-supported
           make-weak-eqv-hashtable weak-eqv-hashtables-supported
           make-weak-hashtable weak-hashtables-supported)

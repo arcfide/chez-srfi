@@ -8,7 +8,7 @@
 
 ;; Converted from lib/chibi/char-set/boundary.sld to R6RS by Göran Weinholt.
 
-(library (srfi :115 boundary)
+(library (srfi :115 regexp boundary)
   (export char-set:regional-indicator
           char-set:extend-or-spacing-mark
           char-set:hangul-l
@@ -24,4 +24,4 @@
   ;; tools/extract-unicode-props.scm --derived GraphemeBreakProperty.txt
   ;;   Control extend-or-spacing-mark=Extend,SpacingMark Regional_Indicator
   ;;   hangul-l=:L hangul-v=:V hangul-t=:T hangul-lv=:LV hangul-lvt=:LVT
-  (include/resolve ("srfi" "%3a115") "boundary.scm"))
+  (include/resolve ("srfi" "%3a115" "regexp") "boundary.scm"))

@@ -22,4 +22,4 @@
                (define tmp
                  (let-values ([(t ... . rest-t) expr])
                    (vector rest-t t ...)))
-               (define all-fml (vector-ref tmp i)) ...))]))))
+               (define all-fmls (vector-ref tmp i)) ...))]))))
