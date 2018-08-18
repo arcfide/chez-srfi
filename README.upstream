@@ -52,6 +52,7 @@ These SRFIs are available:
   (srfi :98 os-environment-variables)
   (srfi :99 records)
   (srfi :115 regex)
+  (srfi :117 list-queues)
   (srfi :125 hashtables)
   (srfi :126 r6rs-hashtables)
   (srfi :127 lazy-sequences)
