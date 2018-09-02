@@ -44,6 +44,7 @@
             (partition partition-list))
     (srfi :9 records)
     (srfi private include)
+    (srfi private let-opt)
     (srfi :14 char-sets inversion-list))
 
   (define-syntax define-record-discloser
@@ -66,7 +67,25 @@
 
   (define (unspecific) (if #f #f))
 
-  (include/resolve ("srfi" "%3a14") "vararg.scm")
+  (define-syntax opt-lambda
+    (lambda (x)
+      (define (split-args args)
+        (syntax-case args ()
+          [(name . rest)
+           (identifier? #'name)
+           (let-values (((names opt-args) (split-args #'rest)))
+             (values (cons #'name names) opt-args))]
+          [(opt-args ...)
+           (values '() #'(opt-args ...))]))
+
+      (syntax-case x ()
+        [(_ (args ...) body ...)
+         (let-values (((fixed-args opt-args) (split-args #'(args ...))))
+           (with-syntax (((fixed-args ...) fixed-args)
+                         ((opt-args ...) opt-args))
+             #'(lambda (fixed-args ... . rest)
+                 (let-optionals* rest (opt-args ...) body ...))))])))
+
   (include/resolve ("srfi" "%3a14") "srfi-14.scm")
   (include/resolve ("srfi" "%3a14") "srfi-14-base-char-sets.scm")
   (include/resolve ("srfi" "%3a14") "srfi-14-char-sets.scm"))
