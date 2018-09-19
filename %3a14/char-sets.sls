@@ -1,9 +1,7 @@
+;; -*- mode: scheme; coding: utf-8 -*-
+;; Copyright © 2018 Göran Weinholt <goran@weinholt.se>
+;; SPDX-License-Identifier: (MIT OR BSD-3-Clause OR LicenseRef-LICENSE)
 #!r6rs
-;; Copyright 2010 Derick Eddington.  My MIT-style license is in the file named
-;; LICENSE from the original collection this file is distributed with.
-
-;; TODO: Are there any issues w.r.t. R6RS Unicode support when using the
-;; pre-R6RS reference implementation?  I suspect there are.
 
 (library (srfi :14 char-sets)
   (export
@@ -19,7 +17,7 @@
     list->char-set! string->char-set!
     char-set-filter  ucs-range->char-set
     char-set-filter! ucs-range->char-set!
-    ->char-set
+    (rename (x->char-set ->char-set))
     ; Querying character sets
     char-set->list char-set->string
     char-set-size char-set-count char-set-contains?
@@ -37,24 +35,57 @@
     char-set:graphic     char-set:printing    char-set:whitespace
     char-set:iso-control char-set:punctuation char-set:symbol
     char-set:hex-digit   char-set:blank       char-set:ascii
-    char-set:empty       char-set:full
-    )
+    char-set:empty       char-set:full)
   (import
     (except (rnrs) define-record-type)
     (rnrs mutable-strings)
     (rnrs r5rs)
-    (srfi :23 error tricks)
+    (rename (only (srfi :1 lists) partition)
+            (partition partition-list))
     (srfi :9 records)
-    (srfi private check-arg)
+    (srfi private include)
     (srfi private let-opt)
-    (srfi private include))
+    (srfi :14 char-sets inversion-list))
 
-  ;; TODO: FIXME: These two seem incorrect.
-  (define (%latin1->char i)
-    (integer->char i))
-  (define (%char->latin1 c)
-    (char->integer c))
+  (define-syntax define-record-discloser
+    (syntax-rules ()
+      ((_ type discloser)
+       (define dummy #f))))
 
-  (SRFI-23-error->R6RS "(library (srfi :14 char-sets))"
-   (include/resolve ("srfi" "%3a14") "srfi-14.scm"))
-)
+  (define (make-immutable! obj)
+    #f)
+
+  (define char->scalar-value char->integer)
+  (define scalar-value->char integer->char)
+
+  (define make-byte-vector make-bytevector)
+  (define byte-vector-ref bytevector-u8-ref)
+  (define byte-vector-set! bytevector-u8-set!)
+  (define byte-vector=? bytevector=?)
+  (define copy-bytes! bytevector-copy!)
+  (define byte-vector-length bytevector-length)
+
+  (define (unspecific) (if #f #f))
+
+  (define-syntax opt-lambda
+    (lambda (x)
+      (define (split-args args)
+        (syntax-case args ()
+          [(name . rest)
+           (identifier? #'name)
+           (let-values (((names opt-args) (split-args #'rest)))
+             (values (cons #'name names) opt-args))]
+          [(opt-args ...)
+           (values '() #'(opt-args ...))]))
+
+      (syntax-case x ()
+        [(_ (args ...) body ...)
+         (let-values (((fixed-args opt-args) (split-args #'(args ...))))
+           (with-syntax (((fixed-args ...) fixed-args)
+                         ((opt-args ...) opt-args))
+             #'(lambda (fixed-args ... . rest)
+                 (let-optionals* rest (opt-args ...) body ...))))])))
+
+  (include/resolve ("srfi" "%3a14") "srfi-14.scm")
+  (include/resolve ("srfi" "%3a14") "srfi-14-base-char-sets.scm")
+  (include/resolve ("srfi" "%3a14") "srfi-14-char-sets.scm"))
