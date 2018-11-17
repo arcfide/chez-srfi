@@ -20,6 +20,7 @@
                   (hashtable-update! rnrs:hashtable-update!)
                   (hashtable-copy rnrs:hashtable-copy)
                   (hashtable-clear! rnrs:hashtable-clear!))
+          (srfi :0 cond-expand)
           (srfi :126 helpers helpers)
           (srfi private include))
   (include/resolve ("srfi" "%3a126") "126.body.scm"))

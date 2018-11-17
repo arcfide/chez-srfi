@@ -18,8 +18,8 @@
              ((make-ephemeral-eq-hashtable-procedure weakness))))
         (else (error 'make-eq-hashtable "weakness not supported" weakness)))
        (if capacity
-                 (rnrs:make-eq-hashtable capacity)
-                 (rnrs:make-eq-hashtable))))))
+           (rnrs:make-eq-hashtable capacity)
+           (rnrs:make-eq-hashtable))))))
 
 (define make-eqv-hashtable
   (case-lambda
@@ -194,7 +194,9 @@
     ((hashtable) (rnrs:hashtable-clear! hashtable))
     ((hashtable capacity)
      (if capacity
-         (rnrs:hashtable-clear! hashtable capacity)
+         (cond-expand
+          (ikarus (rnrs:hashtable-clear! hashtable))
+          (else (rnrs:hashtable-clear! hashtable capacity)))
          (rnrs:hashtable-clear! hashtable)))))
 
 (define hashtable-empty-copy
