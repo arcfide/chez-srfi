@@ -7,15 +7,19 @@
          (rnrs:make-eq-hashtable)))
     ((capacity weakness)
      (if weakness
-         (begin
-           (unless (weak-eq-hashtables-supported)
-             (error 'make-eq-hashtable "weak hashtables unsupported"))
-           (if capacity
-               (make-weak-eq-hashtable capacity)
-               (make-weak-eq-hashtable)))
+       (cond
+        ((memq weakness (weak-eq-hashtables-supported))
          (if capacity
-             (rnrs:make-eq-hashtable capacity)
-             (rnrs:make-eq-hashtable))))))
+             ((make-weak-eq-hashtable-procedure weakness) capacity)
+             ((make-weak-eq-hashtable-procedure weakness))))
+        ((memq weakness (ephemeral-eq-hashtables-supported))
+         (if capacity
+             ((make-ephemeral-eq-hashtable-procedure weakness) capacity)
+             ((make-ephemeral-eq-hashtable-procedure weakness))))
+        (else (error 'make-eq-hashtable "weakness not supported" weakness)))
+       (if capacity
+           (rnrs:make-eq-hashtable capacity)
+           (rnrs:make-eq-hashtable))))))
 
 (define make-eqv-hashtable
   (case-lambda
@@ -26,41 +30,70 @@
          (rnrs:make-eqv-hashtable)))
     ((capacity weakness)
      (if weakness
-         (begin
-           (unless (weak-eqv-hashtables-supported)
-             (error 'make-eqv-hashtable "weak hashtables unsupported"))
+         (cond
+          ((memq weakness (weak-eqv-hashtables-supported))
            (if capacity
-               (make-weak-eqv-hashtable capacity)
-               (make-weak-eqv-hashtable)))
+               ((make-weak-eqv-hashtable-procedure weakness) capacity)
+               ((make-weak-eqv-hashtable-procedure weakness))))
+          ((memq weakness (ephemeral-eqv-hashtables-supported))
+           (if capacity
+               ((make-ephemeral-eqv-hashtable-procedure weakness) capacity)
+               ((make-ephemeral-eqv-hashtable-procedure weakness))))
+          (else (error 'make-eqv-hashtable "weakness not supported" weakness)))
          (if capacity
              (rnrs:make-eqv-hashtable capacity)
              (rnrs:make-eqv-hashtable))))))
 
 (define make-hashtable
   (case-lambda
-    ((hash equiv) (rnrs:make-hashtable hash equiv))
+    ((hash equiv)
+     (if hash
+         (rnrs:make-hashtable (if (pair? hash) (car hash) hash) equiv)
+         (cond
+          ((eq? equiv eq?) (make-eq-hashtable))
+          ((eq? equiv eqv?) (make-eqv-hashtable))
+          (else (error 'make-hashtable
+                       "hash procedure cannot be #f except with eq? or eqv?"
+                       hash equiv)))))
     ((hash equiv capacity)
-     (if capacity
-         (rnrs:make-hashtable hash equiv capacity)
-         (rnrs:make-hashtable hash equiv)))
+     (if hash
+         (if capacity
+             (rnrs:make-hashtable (if (pair? hash) (car hash) hash) equiv
+                                  capacity)
+             (rnrs:make-hashtable (if (pair? hash) (car hash) hash) equiv))
+         (cond
+          ((eq? equiv eq?) (make-eq-hashtable capacity))
+          ((eq? equiv eqv?) (make-eqv-hashtable capacity))
+          (else (error 'make-hashtable
+                       "hash procedure cannot be #f except with eq? or eqv?"
+                       hash equiv)))))
     ((hash equiv capacity weakness)
-     (cond
-      ((and (not hash) (eq? equiv eq?))
-       (make-eq-hashtable capacity weakness))
-      ((and (not hash) (eq? equiv eqv?))
-       (make-eqv-hashtable capacity weakness))
-      (else
-       (let ((hash (if (pair? hash) (car hash) hash))) ;; why?
-         (if weakness
-             (begin
-               (unless (weak-hashtables-supported)
-                 (error 'make-hashtable "weak hashtables unsupported"))
+     (if hash
+         (let ((hash (if (pair? hash) (car hash) hash))) ;; why? - read spec
+           (if weakness
+               (cond
+                ((memq weakness (weak-hashtables-supported))
+                 (if capacity
+                     ((make-weak-hashtable-procedure weakness) hash equiv
+                                                               capacity)
+                     ((make-weak-hashtable-procedure weakness) hash equiv)))
+                ((memq weakness (ephemeral-hashtables-supported))
+                 (if capacity
+                     ((make-ephemeral-hashtable-procedure weakness) hash equiv
+                                                                    capacity)
+                     ((make-ephemeral-hashtable-procedure weakness) hash equiv)))
+                (else (error 'make-hashtable "weakness not supported" weakness)))
                (if capacity
-                   (make-weak-hashtable hash equiv capacity)
-                   (make-weak-hashtable hash equiv)))
-             (if capacity
-                 (rnrs:make-hashtable hash equiv capacity)
-                 (rnrs:make-hashtable hash equiv)))))))))
+                   (rnrs:make-hashtable hash equiv capacity)
+                   (rnrs:make-hashtable hash equiv))))
+         (cond                          ; hash function not provided
+          ((eq? equiv eq?)
+           (make-eq-hashtable capacity weakness))
+          ((eq? equiv eqv?)
+           (make-eqv-hashtable capacity weakness))
+          (else (error 'make-hashtable
+                       "hash procedure cannot be #f except with eq? or eqv?"
+                       hash equiv)))))))
 
 (define (alist->eq-hashtable . args)
   (apply alist->hashtable #f eq? args))
@@ -121,25 +154,31 @@
 
 (define hashtable-update!
   (case-lambda
-    ((hashtable key proc) (hashtable-update! hashtable key proc nil))
+    ((hashtable key proc)
+     (rnrs:hashtable-update! hashtable key
+                             (lambda (value)
+                               (if (nil? value)
+                                   (error "No such key in hashtable."
+                                          hashtable key)
+                                   (proc value)))
+                             nil))
     ((hashtable key proc default)
-     (rnrs:hashtable-update!
-      hashtable key
-      (lambda (value)
-        (if (nil? value)
-            (error "No such key in hashtable." hashtable key)
-            (proc value)))
-      default))))
+     (rnrs:hashtable-update! hashtable key proc default))))
 
-;;; XXX This could be implemented at the platform level to eliminate the second
-;;; lookup for the key.
 (define (hashtable-intern! hashtable key default-proc)
-  (let ((value (hashtable-ref hashtable key nil)))
-    (if (nil? value)
-        (let ((value (default-proc)))
-          (hashtable-set! hashtable key value)
-          value)
-        value)))
+  (if (hashtable-cell-support)
+      (let ((cell (hashtable-cell hashtable key nil)))
+        (if (nil? (hashtable-cell-value cell))
+            (let ((value (default-proc)))
+              (set-hashtable-cell-value! cell value)
+              value)
+            (hashtable-cell-value cell)))
+      (let ((value (rnrs:hashtable-ref hashtable key nil)))
+        (if (nil? value)
+            (let ((value (default-proc)))
+              (hashtable-set! hashtable key value)
+              value)
+            value))))
 
 (define hashtable-copy
   (case-lambda
@@ -155,7 +194,9 @@
     ((hashtable) (rnrs:hashtable-clear! hashtable))
     ((hashtable capacity)
      (if capacity
-         (rnrs:hashtable-clear! hashtable capacity)
+         (cond-expand
+          (ikarus (rnrs:hashtable-clear! hashtable))
+          (else (rnrs:hashtable-clear! hashtable capacity)))
          (rnrs:hashtable-clear! hashtable)))))
 
 (define hashtable-empty-copy
@@ -171,9 +212,11 @@
 
 #;(define hashtable-keys rnrs:hashtable-keys)
 
-(define (hashtable-values hashtable)
-  (let-values (((keys values) (hashtable-entries hashtable)))
-    values))
+;;; Defined in helpers.sls
+
+;; (define (hashtable-values hashtable)
+;;     (let-values (((keys values) (hashtable-entries hashtable)))
+;;       values))
 
 #;(define hashtable-entries rnrs:hashtable-entries)
 
@@ -215,19 +258,30 @@
                      keys values)))
 
 (define (hashtable-merge! hashtable-dest hashtable-source)
-  (hashtable-walk hashtable-source
-    (lambda (key value)
-      (hashtable-set! hashtable-dest key value)))
+  (let-values (((keys values) (hashtable-entries hashtable-source)))
+    (vector-for-each (lambda (key value)
+                       (hashtable-set! hashtable-dest key value))
+                     keys values))
   hashtable-dest)
 
 (define (hashtable-sum hashtable init proc)
-  (let-values (((keys vals) (hashtable-entry-lists hashtable)))
-    (fold proc init keys vals)))
+  (let-values (((keys vals) (hashtable-entries hashtable)))
+    (let ((size (vector-length keys)))
+      (let loop ((i 0) (result init))
+        (if (fx>=? i size)
+            result
+            (loop (fx+ i 1) (proc (vector-ref keys i)
+                                  (vector-ref vals i)
+                                  result)))))))
 
 (define (hashtable-map->lset hashtable proc)
-  (hashtable-sum hashtable '()
-    (lambda (key value accumulator)
-      (cons (proc key value) accumulator))))
+  (let-values (((keys vals) (hashtable-entries hashtable)))
+    (let ((size (vector-length keys)))
+      (let loop ((i 0) (accumulator '()))
+        (if (fx>=? i size)
+            accumulator
+            (loop (fx+ i 1) (cons (proc (vector-ref keys i) (vector-ref vals i))
+                                  accumulator)))))))
 
 ;;; XXX If available, let-escape-continuation might be more efficient than
 ;;; call/cc here.
@@ -241,7 +295,7 @@
      (return #f #f #f))))
 
 (define (hashtable-empty? hashtable)
-  (zero? (hashtable-size hashtable)))
+  (fxzero? (hashtable-size hashtable)))
 
 ;;; XXX A platform-level implementation could avoid allocating the constant true
 ;;; function and the lookup for the key in the delete operation.
@@ -269,7 +323,8 @@
 
 #;(define hashtable-hash-function rnrs-hashtable-hash-function)
 
-(define (hashtable-weakness hashtable) #f)
+;;; Defined in helpers.sls
+#;(define (hashtable-weakness hashtable) #f)
 
 #;(define hashtable-mutable? rnrs-hashtable-mutable?)
 
@@ -277,12 +332,7 @@
   (let ((seed (get-environment-variable "SRFI_126_HASH_SEED")))
     (if (or (not seed) (string=? seed ""))
         (random-integer (greatest-fixnum))
-        (modulo
-         (fold (lambda (char result)
-                 (+ (char->integer char) result))
-               0
-               (string->list seed))
-         (greatest-fixnum)))))
+        (mod (string-hash seed) (greatest-fixnum)))))
 
 (define (hash-salt) *hash-salt*)
 
