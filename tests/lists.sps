@@ -14,10 +14,11 @@
 ; that the cells of the results are the cells of the input with only
 ; the CDR changed, ie, values are never moved from one cell to another.
 
-(import (except (rnrs base) map for-each)
+(import (except (rnrs base) error map for-each)
         (rnrs io simple)
         (rnrs r5rs)
-        (srfi :1 lists))
+        (srfi :1 lists)
+        (srfi :23 error))
 
 (define (writeln . xs)
   (for-each display xs)

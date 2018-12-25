@@ -46,29 +46,16 @@
     ;; different than R6RS:
     assoc filter find fold-right for-each map member partition remove)
   (import
-    (except (rnrs)
-            assoc filter find fold-right for-each map member partition remove)
+    (rename (except (rnrs) find filter fold-right map partition remove)
+            (assoc r6rs:assoc)
+            (for-each r6rs:for-each)
+            (member r6rs:member))
     (rnrs mutable-pairs)
     (srfi :8 receive)
     (srfi :23 error tricks)
     (for (srfi private vanish) expand)
     (srfi private check-arg)
     (srfi private include))
-
-  (define-syntax :optional
-    (syntax-rules ()
-      ((_ args default)
-       (let ((a args))
-         (if (pair? a) (car a) default)))))
-
-  (define-syntax let-optionals
-    (syntax-rules ()
-      ((_ _ () . body)
-       (let () . body))
-      ((_ args ((id default) . more) . body)
-       (let ((a args))
-         (let ((id (:optional a default)))
-           (let-optionals (if (pair? a) (cdr a) '()) more . body))))))
 
   (let-syntax ((define (vanish-define define (cons*))))
     (SRFI-23-error->R6RS "(library (srfi :1 lists))"
