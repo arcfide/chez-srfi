@@ -257,14 +257,18 @@
            (error "make-hash-table: unable to infer hash function"
                   equiv)))))
 
-;;; FIXME: assumes hash-table-set! goes right to left.
-
 (define (hash-table comparator . rest)
-  (let ((ht (make-hash-table comparator)))
-    (apply hash-table-set!
-           ht
-           rest)
-    ht))
+  (let ((ht (apply make-hash-table comparator rest)))
+    (let loop ((kvs rest))
+      (cond
+       ((null? kvs) #f)
+       ((null? (cdr kvs)) (error "hash-table: wrong number of arguments"))
+       ((hashtable-contains? ht (car kvs))
+        (error "hash-table: two equivalent keys were provided"
+               (car kvs)))
+       (else (hashtable-set! ht (car kvs) (cadr kvs))
+             (loop (cddr kvs)))))
+    (hash-table-copy ht #f)))
 
 (define (hash-table-unfold stop? mapper successor seed comparator . rest)
   (let ((ht (apply make-hash-table comparator rest)))
@@ -299,24 +303,18 @@
 ;; (define (hash-table-empty? ht)
 ;;   (hashtable-empty? ht))
 
-;;; FIXME: walks both hash tables because their key comparators
-;;; might be different
-
 (define (hash-table=? value-comparator ht1 ht2)
   (let ((val=? (comparator-equality-predicate value-comparator))
         (n1 (hash-table-size ht1))
         (n2 (hash-table-size ht2)))
     (and (= n1 n2)
+         (eq? (hashtable-equivalence-function ht1)
+              (hashtable-equivalence-function ht2))
          (hash-table-every (lambda (key val1)
                              (and (hash-table-contains? ht2 key)
                                   (val=? val1
                                          (hashtable-ref ht2 key 'ignored))))
-                           ht1)
-         (hash-table-every (lambda (key val2)
-                             (and (hash-table-contains? ht1 key)
-                                  (val=? val2
-                                         (hashtable-ref ht1 key 'ignored))))
-                           ht2))))
+                           ht1))))
 
 (define (hash-table-mutable? ht)
   (hashtable-mutable? ht))
@@ -347,9 +345,9 @@
     ((ht) #f)
     ((ht key val) (hashtable-set! ht key val))
     ((ht key1 val1 key2 val2 . others)
-     (apply hash-table-set! ht others)
+     (hashtable-set! ht key1 val1)
      (hashtable-set! ht key2 val2)
-     (hashtable-set! ht key1 val1))))
+     (apply hash-table-set! ht others))))
 
 (define (hash-table-delete! ht . keys)
   (let ((count 0))
@@ -473,9 +471,7 @@
 (define (hash-table-empty-copy ht)
   (let* ((ht2 (hash-table-copy ht #t))
          (ignored (hash-table-clear! ht2)))
-    (if (hash-table-mutable? ht)
-        ht2
-        (hash-table-copy ht2))))
+    ht2))
 
 (define (hash-table->alist ht)
   (call-with-values
