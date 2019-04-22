@@ -85,10 +85,12 @@
 
 ; exported syntax
 
-(define-syntax (<> x)
-  (syntax-violation #f "misplaced aux keyword <>"))
-(define-syntax (<...> x)
-  (syntax-violation #f "misplaced aux keyword <...>"))
+(define-syntax <>
+  (lambda (x)
+    (syntax-violation #f "misplaced aux keyword <>")))
+(define-syntax <...>
+  (lambda (x)
+    (syntax-violation #f "misplaced aux keyword <...>")))
 
 (define-syntax cut
   (syntax-rules ()
