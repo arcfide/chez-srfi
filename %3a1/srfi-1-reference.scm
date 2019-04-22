@@ -986,6 +986,8 @@
   (case-lambda
     ((f lis1)
      (really-append-map append-map  append  f lis1))
+    ((f lis1 lis2)
+     (really-append-map append-map  append  f lis1 lis2))
     ((f lis1 lis2 . lists)
      (really-append-map append-map  append  f lis1 lis2 lists))))
 
@@ -993,12 +995,14 @@
   (case-lambda
     ((f lis1)
      (really-append-map append-map! append! f lis1))
+    ((f lis1 lis2)
+     (really-append-map append-map! append! f lis1 lis2))
     ((f lis1 lis2 . lists)
      (really-append-map append-map! append! f lis1 lis2 lists))))
 
 (define really-append-map
   (case-lambda
-    ;; Fast path
+    ;; Fast path 1
     ((who appender f lis1)
      (check-arg procedure? f who)
      (if (null-list? lis1) '()
@@ -1006,6 +1010,17 @@
            (let ((vals (f elt)))
              (if (null-list? rest) vals
                  (appender vals (recur (car rest) (cdr rest))))))))
+    ;; Fast path 2
+    ((who appender f lis1 lis2)
+     (check-arg procedure? f who)
+     (if (or (null-list? lis1) (null-list? lis2))
+         '()
+         (let recur ((lis1 lis1) (lis2 lis2))
+           (let ((vals (f (car lis1) (car lis2)))
+                 (lis1 (cdr lis1)) (lis2 (cdr lis2)))
+             (if (or (null-list? lis1) (null-list? lis2))
+                 vals
+                 (appender vals (recur lis1 lis2)))))))
     ;; N-ary case
     ((who appender f lis1 lis2 lists)
      (check-arg procedure? f who)
