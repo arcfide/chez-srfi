@@ -91,4 +91,4 @@
     (string-concatenate (reverse ls)))
 
   ;; Replaced |\|| with \x7C;.
-  (include/resolve ("srfi" "%3a115") "regexp.scm"))
+  (include/resolve ("srfi" "%3a115") "regexp-impl.scm"))
