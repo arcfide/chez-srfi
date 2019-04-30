@@ -5,6 +5,6 @@
 (library (srfi :26 cut)
   (export cut cute <> <...>)
   (import (rnrs) (srfi private include))
-  
-  (include/resolve ("srfi" "%3a26") "cut.scm")  
+
+  (include/resolve ("srfi" "%3a26") "cut-impl.scm")
 )
