@@ -48,4 +48,4 @@
                         #'(define-record-type typename
                             (constructor field-init* ...) etc ...))))))
 
-    (include/resolve ("srfi" "%3a14" "char-sets") "inversion-list.scm")))
+    (include/resolve ("srfi" "%3a14" "char-sets") "inversion-list-impl.scm")))

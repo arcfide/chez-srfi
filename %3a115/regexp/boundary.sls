@@ -24,4 +24,4 @@
   ;; tools/extract-unicode-props.scm --derived GraphemeBreakProperty.txt
   ;;   Control extend-or-spacing-mark=Extend,SpacingMark Regional_Indicator
   ;;   hangul-l=:L hangul-v=:V hangul-t=:T hangul-lv=:LV hangul-lvt=:LVT
-  (include/resolve ("srfi" "%3a115" "regexp") "boundary.scm"))
+  (include/resolve ("srfi" "%3a115" "regexp") "boundary-impl.scm"))
