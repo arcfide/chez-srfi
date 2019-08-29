@@ -1,6 +1,6 @@
 (library (srfi :145 assumptions)
   (export assume)
-  (import (rnrs) (srfi :0) (srfi :23))
+  (import (except (rnrs) error) (srfi :0) (srfi :23))
 
   (define-syntax assume
     (syntax-rules ()
