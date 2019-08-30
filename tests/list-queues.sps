@@ -2,6 +2,8 @@
 ; Using SRFI-64 test-group gave some trouble hence using test-begin/test-end.
 
 (import
+  (rnrs)
+  (srfi private define-values)
   (srfi :64 testing)
   (srfi :117 list-queues))
 
@@ -84,14 +86,14 @@
   (define (double x) (* x 2))
   (define (done? x) (> x 3))
   (define (add1 x) (+ x 1))
-  (define x (list-queue-unfold done? double add1 0))
-  (test-equal '(0 2 4 6) (list-queue-list x))
-  (define y (list-queue-unfold-right done? double add1 0))
-  (test-equal '(6 4 2 0) (list-queue-list y))
-  (define x0 (list-queue 8))
-  (define x1 (list-queue-unfold done? double add1 0 x0))
-  (test-equal '(0 2 4 6 8) (list-queue-list x1))
-  (define y0 (list-queue 8))
-  (define y1 (list-queue-unfold-right done? double add1 0 y0))
-  (test-equal '(8 6 4 2 0) (list-queue-list y1))
+  (define xx (list-queue-unfold done? double add1 0))
+  (test-equal '(0 2 4 6) (list-queue-list xx))
+  (define yy (list-queue-unfold-right done? double add1 0))
+  (test-equal '(6 4 2 0) (list-queue-list yy))
+  (define xx0 (list-queue 8))
+  (define xx1 (list-queue-unfold done? double add1 0 xx0))
+  (test-equal '(0 2 4 6 8) (list-queue-list xx1))
+  (define yy0 (list-queue 8))
+  (define yy1 (list-queue-unfold-right done? double add1 0 yy0))
+  (test-equal '(8 6 4 2 0) (list-queue-list yy1))
 (test-end "list-queues/unfold")

@@ -17,7 +17,7 @@
 
     ;;; * Mutators
     vector-swap! vector-fill! vector-reverse! vector-copy! vector-reverse-copy!
-    vector-reverse! vector-unfold! vector-unfold-right!
+    vector-unfold! vector-unfold-right!
 
     ;;; * Conversion
     vector->list reverse-vector->list list->vector reverse-list->vector
