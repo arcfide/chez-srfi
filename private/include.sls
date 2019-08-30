@@ -6,8 +6,9 @@
   (export 
     include/resolve)
   (import 
-    (rnrs) 
-    (for (srfi private include compat) expand))
+    (except (rnrs) read)
+    (for (srfi private include compat) expand)
+    (for (srfi private include read) expand))
   
   (define-syntax include/resolve
     (lambda (stx)
