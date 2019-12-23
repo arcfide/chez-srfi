@@ -12,10 +12,10 @@
     :-dispatch-ref :-dispatch-set! make-initial-:-dispatch
     dispatch-union :generator-proc)
   (import
-    (rnrs)
+    (except (rnrs) error)
     (rnrs r5rs)
     (srfi :39 parameters)
-    (srfi :23 error tricks)
+    (srfi :23 error)
     (for (srfi private vanish) expand)
     (srfi private include))
 
@@ -25,8 +25,7 @@
       ((set! _ expr) (:-dispatch-param expr))))
 
   (let-syntax ((define (vanish-define define (:-dispatch))))
-    (SRFI-23-error->R6RS "(library (srfi :42 eager-comprehensions))"
-     (include/resolve ("srfi" "%3a42") "ec.scm")))
+    (include/resolve ("srfi" "%3a42") "ec.scm"))
 
   (define :-dispatch-param (make-parameter (make-initial-:-dispatch)))
 )
