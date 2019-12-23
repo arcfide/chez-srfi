@@ -112,37 +112,49 @@
 
 (define %not-found-message "hash-table key not found")
 
-;;; FIXME: thread-safe, weak-keys, ephemeral-keys, weak-values,
-;;; and ephemeral-values are not supported by this portable
-;;; reference implementation.
-
+;;; We let SRFI 126 decide which weakness is supported
 (define (%check-optional-arguments procname args)
-  (if (or (memq 'thread-safe args)
-          (memq 'weak-keys args)
-          (memq 'weak-values args)
-          (memq 'ephemeral-keys args)
-          (memq 'ephemeral-values args))
+  (if (memq 'thread-safe args)
       (error (string-append (symbol->string procname)
                             ": unsupported optional argument(s)")
              args)))
+
+(define (%get-hash-table-weakness args) 
+  (cond
+   ((memq 'ephemeral-values args)
+    (if (or (memq 'ephemeral-keys args)
+            (memq 'weak-keys args))
+        'ephemeral-key-and-value
+        'ephemeral-value))
+   ((memq 'ephemeral-keys args)
+    (if (memq 'weak-values args)
+        'ephemeral-key-and-value
+        'ephemeral-key))
+   ((memq 'weak-keys args)
+    (if (memq 'weak-values args)
+        'weak-key-and-value
+        'weak-key))
+   ((memq 'weak-values args)
+    'weak-value)
+   (else #f)))
+
+(define (%get-hash-table-capacity args)
+  (find fixnum? args))
 
 ;;; This was exported by an earlier draft of SRFI 125,
 ;;; and is still used by hash-table=?
 
 (define (hash-table-every proc ht)
   (call-with-values
-   (lambda () (hash-table-entries ht))
-   (lambda (keys vals)
-     (let loop ((keys keys)
-                (vals vals))
-       (if (null? keys)
-           #t
-           (let* ((key (car keys))
-                  (val (car vals))
-                  (x   (proc key val)))
-             (and x
-                  (loop (cdr keys)
-                        (cdr vals)))))))))
+      (lambda () (hashtable-entries ht))
+    (lambda (keys vals)
+      (let ((size (vector-length keys)))
+        (let loop ((i 0))
+          (or (fx>=? i size)
+              (let* ((key (vector-ref keys i))
+                     (val (vector-ref vals i)))
+                (and (proc key val)
+                     (loop (fx+ i 1))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -224,32 +236,39 @@
 
 (define (%make-hash-table equiv hash-function opts)
   (%check-optional-arguments 'make-hash-table opts)
-  (cond ((equal? equiv eq?)
-         (make-eq-hashtable))
-        ((equal? equiv eqv?)
-         (make-eqv-hashtable))
-        (hash-function
-         (make-hashtable hash-function equiv))
-        ((equal? equiv equal?)
-         (make-hashtable equal-hash equiv))
-        ((equal? equiv string=?)
-         (make-hashtable string-hash equiv))
-        ((equal? equiv string-ci=?)
-         (make-hashtable string-ci-hash equiv))
-        ((equal? equiv symbol=?)
-         (make-hashtable symbol-hash equiv))
-        (else
-         (error "make-hash-table: unable to infer hash function"
-                equiv))))
-
-;;; FIXME: assumes hash-table-set! goes right to left.
+  (let ((weakness (%get-hash-table-weakness opts))
+        (capacity (%get-hash-table-capacity opts)))
+    ;; Use SRFI :126 make-hashtable to handle capacity and weakness
+    (cond ((equal? equiv eq?)
+           (make-eq-hashtable capacity weakness))
+          ((equal? equiv eqv?)
+           (make-eqv-hashtable capacity weakness))
+          (hash-function
+           (make-hashtable hash-function equiv capacity weakness))
+          ((equal? equiv equal?)
+           (make-hashtable equal-hash equiv capacity weakness))
+          ((equal? equiv string=?)
+           (make-hashtable string-hash equiv capacity weakness))
+          ((equal? equiv string-ci=?)
+           (make-hashtable string-ci-hash equiv capacity weakness))
+          ((equal? equiv symbol=?)
+           (make-hashtable symbol-hash equiv capacity weakness))
+          (else
+           (error "make-hash-table: unable to infer hash function"
+                  equiv)))))
 
 (define (hash-table comparator . rest)
   (let ((ht (apply make-hash-table comparator rest)))
-    (apply hash-table-set!
-           ht
-           rest)
-    ht))
+    (let loop ((kvs rest))
+      (cond
+       ((null? kvs) #f)
+       ((null? (cdr kvs)) (error "hash-table: wrong number of arguments"))
+       ((hashtable-contains? ht (car kvs))
+        (error "hash-table: two equivalent keys were provided"
+               (car kvs)))
+       (else (hashtable-set! ht (car kvs) (cadr kvs))
+             (loop (cddr kvs)))))
+    (hash-table-copy ht #f)))
 
 (define (hash-table-unfold stop? mapper successor seed comparator . rest)
   (let ((ht (apply make-hash-table comparator rest)))
@@ -275,153 +294,141 @@
 
 ;;; Predicates.
 
-(define (hash-table? obj)
-  (hashtable? obj))
+;; (define (hash-table? obj)
+;;   (hashtable? obj))
 
-(define (hash-table-contains? ht key)
-  (hashtable-contains? ht key))
+;; (define (hash-table-contains? ht key)
+;;   (hashtable-contains? ht key))
 
-(define (hash-table-empty? ht)
-  (= 0 (hashtable-size ht)))
-
-;;; FIXME: walks both hash tables because their key comparators
-;;; might be different
+;; (define (hash-table-empty? ht)
+;;   (hashtable-empty? ht))
 
 (define (hash-table=? value-comparator ht1 ht2)
   (let ((val=? (comparator-equality-predicate value-comparator))
         (n1 (hash-table-size ht1))
         (n2 (hash-table-size ht2)))
     (and (= n1 n2)
+         (eq? (hashtable-equivalence-function ht1)
+              (hashtable-equivalence-function ht2))
          (hash-table-every (lambda (key val1)
-                             (and (hashtable-contains? ht2 key)
+                             (and (hash-table-contains? ht2 key)
                                   (val=? val1
                                          (hashtable-ref ht2 key 'ignored))))
-                           ht1)
-         (hash-table-every (lambda (key val2)
-                             (and (hashtable-contains? ht1 key)
-                                  (val=? val2
-                                         (hashtable-ref ht1 key 'ignored))))
-                           ht2))))
+                           ht1))))
 
 (define (hash-table-mutable? ht)
   (hashtable-mutable? ht))
 
 ;;; Accessors.
 
-(define (hash-table-ref ht key . rest)
-  (let ((failure (if (null? rest) #f (car rest)))
-        (success (if (or (null? rest) (null? (cdr rest))) #f (cadr rest)))
-        (val (hashtable-ref ht key %not-found)))
-    (cond ((eq? val %not-found)
-           (if (and failure (procedure? failure))
-               (failure)
-               (error %not-found-message ht key %not-found-irritant)))
-          (success
-           (success val))
-          (else
-           val))))
+(define hash-table-ref
+  (case-lambda
+    ((ht key) (hashtable-ref ht key))
+    ((ht key failure)
+     (let ((val (hashtable-ref ht key %not-found)))
+       (if (eq? val %not-found)
+           (failure)
+           val)))
+    ((ht key failure success)
+     (let ((val (hashtable-ref ht key %not-found)))
+       (if (eq? val %not-found)
+           (failure)
+           (success val))))))
 
 (define (hash-table-ref/default ht key default)
   (hashtable-ref ht key default))
 
 ;;; Mutators.
 
-(define (hash-table-set! ht . rest)
-  (if (= 2 (length rest))
-      (hashtable-set! ht (car rest) (cadr rest))
-      (let ((revrest (reverse rest)))
-        (let loop ((revrest revrest))
-          (cond ((and (not (null? revrest))
-                      (not (null? (cdr revrest))))
-                 (hashtable-set! ht (cadr revrest) (car revrest))
-                 (loop (cddr revrest)))
-                ((not (null? revrest))
-                 (error "hash-table-set!: wrong number of arguments"
-                        (cons ht rest))))))))
+(define hash-table-set!
+  (case-lambda
+    ((ht) #f)
+    ((ht key val) (hashtable-set! ht key val))
+    ((ht key1 val1 key2 val2 . others)
+     (hashtable-set! ht key1 val1)
+     (hashtable-set! ht key2 val2)
+     (apply hash-table-set! ht others))))
 
 (define (hash-table-delete! ht . keys)
-  (for-each (lambda (key)
-              (hashtable-delete! ht key))
-            keys))
+  (let ((count 0))
+    (for-each (lambda (key)
+                (when (hashtable-contains? ht key)
+                  (set! count (fx+ 1 count))
+                  (hashtable-delete! ht key)))
+              keys)
+    count))
 
-(define (hash-table-intern! ht key failure)
-  (if (hashtable-contains? ht key)
-      (hash-table-ref ht key)
-      (let ((val (failure)))
-        (hash-table-set! ht key val)
-        val)))
+;; (define (hash-table-intern! ht key failure)
+;;   (hashtable-intern! ht key failure))
 
-(define (hash-table-update! ht key updater . rest)
-  (hash-table-set! ht
-                   key
-                   (updater (apply hash-table-ref ht key rest))))
+(define hash-table-update!
+  (case-lambda
+    ((ht key updater)
+     (hashtable-update! ht key updater))
+
+    ((ht key updater failure)
+     (let ((updater* (lambda (val)
+                       (if (eq? %not-found val)
+                           (updater (failure))
+                           (updater val)))))
+       (hashtable-update! ht key updater* %not-found)))
+
+    ((ht key updater failure success)
+     (let* ((updater* (lambda (val)
+                        (if (eq? %not-found val)
+                            (updater (failure))
+                            (success (updater val))))))
+       (hashtable-update! ht key updater* %not-found)))))
 
 (define (hash-table-update!/default ht key updater default)
-  (hash-table-set! ht key (updater (hashtable-ref ht key default))))
+  (hashtable-update! ht key updater default))
 
-(define (hash-table-pop! ht)
-  (call/cc
-    (lambda (return)
-      (hash-table-for-each
-        (lambda (key value)
-          (hash-table-delete! ht key)
-          (return key value))
-        ht))))
+;; (define (hash-table-pop! ht)
+;;   (hashtable-pop! ht))
 
-(define (hash-table-clear! ht)
-  (hashtable-clear! ht))
+;; (define (hash-table-clear! ht)
+;;   (hashtable-clear! ht))
 
 ;;; The whole hash table.
 
-(define (hash-table-size ht)
-  (hashtable-size ht))
+;; (define (hash-table-size ht)
+;;   (hashtable-size ht))
 
 (define (hash-table-keys ht)
   (vector->list (hashtable-keys ht)))
 
 (define (hash-table-values ht)
-  (call-with-values
-   (lambda () (hashtable-entries ht))
-   (lambda (keys vals)
-     (vector->list vals))))
+  (vector->list (hashtable-values ht)))
 
 (define (hash-table-entries ht)
   (call-with-values
-   (lambda () (hashtable-entries ht))
-   (lambda (keys vals)
-     (values (vector->list keys)
-             (vector->list vals)))))
+      (lambda () (hashtable-entries ht))
+    (lambda (keys vals)
+      (values (vector->list keys)
+              (vector->list vals)))))
 
 (define (hash-table-find proc ht failure)
   (call-with-values
-   (lambda () (hash-table-entries ht))
-   (lambda (keys vals)
-     (let loop ((keys keys)
-                (vals vals))
-       (if (null? keys)
-           (failure)
-           (let* ((key (car keys))
-                  (val (car vals))
-                  (x   (proc key val)))
-             (or x
-                 (loop (cdr keys)
-                       (cdr vals)))))))))
+      (lambda () (hashtable-entries ht))
+    (lambda (keys vals)
+      (let ((size (vector-length keys)))
+        (let loop ((i 0))
+          (if (fx>=? i size)
+              (failure)
+              (let* ((key (vector-ref keys i))
+                     (val (vector-ref vals i))
+                     (x (proc key val)))
+                (or x (loop (fx+ i 1))))))))))
 
 (define (hash-table-count pred ht)
-  (call-with-values
-   (lambda () (hash-table-entries ht))
-   (lambda (keys vals)
-     (let loop ((keys keys)
-                (vals vals)
-                (n 0))
-       (if (null? keys)
-           n
-           (let* ((key (car keys))
-                  (val (car vals))
-                  (x   (pred key val)))
-             (loop (cdr keys)
-                   (cdr vals)
-                   (if x (+ n 1) n))))))))
+  (let ((count 0))
+    (call-with-values
+        (lambda () (hashtable-entries ht))
+      (lambda (keys vals)
+        (vector-for-each (lambda (key val)
+                           (if (pred key val) (set! count (fx+ count 1))))
+                         keys vals)))
+    count))
 
 ;;; Mapping and folding.
 
@@ -444,48 +451,27 @@
 ;;; relied upon by procedures defined in this file.
 
 (define (hash-table-for-each proc ht)
-  (call-with-values
-   (lambda () (hashtable-entries ht))
-   (lambda (keys vals)
-     (vector-for-each proc keys vals))))
+  (hashtable-walk ht proc))
 
 (define (hash-table-map! proc ht)
-  (hash-table-for-each (lambda (key val)
-                         (hashtable-set! ht key (proc key val)))
-                       ht))
+  (hashtable-update-all! ht proc))
 
 (define (hash-table-fold proc init ht)
   (if (hashtable? proc)
       (deprecated:hash-table-fold proc init ht)
-      (call-with-values
-       (lambda () (hash-table-entries ht))
-       (lambda (keys vals)
-         (let loop ((keys keys)
-                    (vals vals)
-                    (x    init))
-           (if (null? keys)
-               x
-               (loop (cdr keys)
-                     (cdr vals)
-                     (proc (car keys) (car vals) x))))))))
+      (hashtable-sum ht init proc)))
 
 (define (hash-table-prune! proc ht)
-  (hash-table-for-each (lambda (key val)
-                         (if (proc key val)
-                             (hashtable-delete! ht key)))
-                       ht))
+  (hashtable-prune! ht proc))
 
 ;;; Copying and conversion.
 
-(define (hash-table-copy ht . rest)
-  (apply hashtable-copy ht rest))
+;; (define hash-table-copy hashtable-copy)
 
 (define (hash-table-empty-copy ht)
-  (let* ((ht2 (hashtable-copy ht #t))
-         (ignored (hashtable-clear! ht2)))
-    (if (hashtable-mutable? ht)
-        ht2
-        (hashtable-copy ht2))))
+  (let* ((ht2 (hash-table-copy ht #t))
+         (ignored (hash-table-clear! ht2)))
+    ht2))
 
 (define (hash-table->alist ht)
   (call-with-values

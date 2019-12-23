@@ -1,4 +1,4 @@
-(library (srfi :143 fixnums helpers)
+(library (srfi :143 helpers)
   (export fxabs fxremainder fxquotient)
   (import (rnrs) (rnrs r5rs))
 
