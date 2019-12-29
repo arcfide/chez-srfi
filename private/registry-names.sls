@@ -62,4 +62,5 @@
       (151 bitwise-operations)
       (152 strings)
       (156 predicate-combiners)
-      (158 generators-and-accumulators))))
+      (158 generators-and-accumulators)
+      (175 ascii))))
