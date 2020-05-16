@@ -1,3 +1,21 @@
+;; SRFI-151 r6rs library implementation
+;;
+;; The following contains a combination of R6RS implementation along with
+;; implementations pulled from the SRFI-151 implementation.
+;;
+;; The R6RS wrappers and simple functions are:
+;; Copyright (c) 2018 - 2020 Andrew W. Keep
+;;
+;; The bitwise-eqv implementation is based on the Olin Shiver's SRFI-33
+;; implementation from the SRFI-151 example library:
+;; Olin Shivers is the sole author of this code, and he has placed it in the
+;; public domain.
+;;
+;; The bitwise-fold, bitwise-for-each, bitwise-unfold, and
+;; make-bitwise-generator functions are pulled from John Cowan's SRFI-151
+;; implementation and are:
+;; Copyright John Cowan 2017
+
 (library (srfi :151 bitwise-operations)
   (export
     bitwise-not
@@ -25,6 +43,33 @@
     make-bitwise-generator)
   (import (rnrs))
 
+  ;;; The bitwise-eqv implmentation is based on the one in the SRFI-151
+  ;;; implementation, which extracted it from the SRFI-33 implementation which
+  ;;; carried the following copyright information:
+  ;;;
+  ;;; Olin Shivers is the sole author of this code, and he has placed it in
+  ;;; the public domain.
+  ;;; 
+  ;;; A good implementation might choose to provide direct compiler/interpreter
+  ;;; support for these derived functions, or might simply define them to be
+  ;;; integrable -- i.e., inline-expanded.
+  ;;; 
+  ;;; This is a general definition, but less than efficient.  It should also
+  ;;; receive primitive compiler/interpreter support so that the expensive
+  ;;; n-ary mechanism is not invoked in the standard cases -- that is,
+  ;;; an application of BITWISE-EQV should be rewritten into an equivalent
+  ;;; tree applying some two-argument primitive to the arguments, in the
+  ;;; same manner that statically-known n-ary applications of associative
+  ;;; operations such as + and * are handled efficiently:
+  ;;;   (bitwise-eqv)         => -1
+  ;;;   (bitwise-eqv i)       => i
+  ;;;   (bitwise-eqv i j)     => (%bitwise-eqv i j)
+  ;;;   (bitwise-eqv i j k)   => (%bitwise-eqv (%bitwise-eqv i j) k)
+  ;;;   (bitwise-eqv i j k l) => (%bitwise-eqv (%bitwise-eqv (%bitwise-eqv i j) k) l)
+  ;;;
+  ;;; Note: this implementation takes the advice of the comment avove and
+  ;;; implemets this using case lambade, though Chez Scheme's source optimizer
+  ;;; is relied upon to produce the constants.
   (define bitwise-eqv
     (case-lambda
       [() (bitwise-not (bitwise-xor))]
@@ -161,6 +206,13 @@
 
   (define bits (lambda args (list->bits args)))
 
+  ;; ---- from SRFI-151 other ---
+  ;; The following functions: bitwise-fold, bitwise-for-each, bitwise-unfold,
+  ;; and make-bitwise-generator are taken from John Cowan's implemtation
+  ;; functions from the SRFI-151.
+  ;;
+  ;; Copyright John Cowan 2017
+  ;;
   (define bitwise-fold
     (lambda (proc seed i)
       (let ([n (integer-length i)])
@@ -190,4 +242,6 @@
         (lambda ()
           (let ([r (bitwise-bit-set? i idx)])
             (set! idx (fx+ idx 1))
-            r))))))
+            r)))))
+  ;; ---- END from SRFI-151 other ---
+)

@@ -1,3 +1,11 @@
+;; SRFI-17 implementation for Chez Scheme
+;;
+;; Generalized getter and setter for built-in Chez Scheme types.
+;; Uses Chez Scheme's define-proprety and syntactic environment to
+;; provide generalized reference and set! syntax.  Relies on helpers
+;; 
+;; Copyright (c) 2018 - 2020 Andrew W. Keep
+
 (library (srfi :17 generalized-set!)
   (export getter-with-setter set!
           car cdr

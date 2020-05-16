@@ -1,3 +1,11 @@
+;; SRFI-17 generic helpers
+;;
+;; This file contains R6RS compatible wrappers for some of the
+;; built-in setters used by the generalized set! syntax.
+;;
+;; Note: this was never completely fleshed out.
+;;
+;; Copyright (c) 2018 - 2020 Andrew W. Keep
 
   (define-syntax define-$set-c...r!
     (lambda (x)

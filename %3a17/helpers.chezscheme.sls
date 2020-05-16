@@ -1,3 +1,10 @@
+;; SRFI-17 Chez Scheme helpers
+;;
+;; This file contains wrappers for some of the built-in setters used
+;; by the generalized set! syntax.
+;;
+;; Copyright (c) 2018 - 2020 Andrew W. Keep
+
 (library (srfi :17 helpers)
   (export $list-set!
           $hashtable-set! $eq-hashtable-set! $symbol-hashtable-set!
