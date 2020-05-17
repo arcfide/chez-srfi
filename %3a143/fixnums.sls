@@ -1,3 +1,12 @@
+;; SRFI-143 r6rs library implementation
+;;
+;; Implements the fixnum operators specified in SRFI-143 using a combination of
+;; R6RS sepcified version and Chez Scheme provided operators where R6RS does
+;; not include them.  These are in the helpers library and non-Chez Scheme
+;; versions are included for supporting other R6RS implementations.
+;;
+;; Copyright (c) 2018 - 2020 Andrew W. Keep
+
 (library (srfi :143 fixnums)
   (export
     fx-width fx-greatest fx-least

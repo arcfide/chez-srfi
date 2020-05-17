@@ -1,3 +1,12 @@
+;; SRFI-60 R6RS implementation
+;;
+;; Builds out the SRFI-60 specified bitwise operators using the set of bitwise
+;; operators that is part of the standard R6RS library.  In some cases these
+;; could directly use Chez Scheme library procedures directly, but this library
+;; does not do that yet.
+;;
+;; Copyright (c) 2018 - 2020 Andrew W. Keep
+
 (library (srfi :60 integer-bits)
   (export logand bitwise-and logior bitwise-ior logxor bitwise-xor lognot
           bitwise-not bitwise-if bitwise-merge logtest any-bits-set? logcount

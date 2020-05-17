@@ -1,3 +1,12 @@
+;; SRFI-4 implementation
+;;
+;; Wraps a bytevector with a scheme record so that the wrapping vector
+;; predicates can uniquely recognize it.  This approach is based on the one
+;; suggested in the SRFI-4 write-up, with macros as helpers to generate the
+;; implementation.
+;;
+;; Copyright (c) 2018 - 2020 Andrew W. Keep
+
 (library (srfi :4 numeric-vectors)
   (export
     s8vector? make-s8vector s8vector s8vector-length s8vector-ref s8vector-set!
@@ -11,7 +20,7 @@
 
     s64vector? make-s64vector s64vector s64vector-length s64vector-ref
     s64vector-set! s64vector->list list->s64vector
-    
+
     u8vector? make-u8vector u8vector u8vector-length u8vector-ref u8vector-set!
     u8vector->list list->u8vector
 
@@ -28,7 +37,7 @@
     f32vector-set! f32vector->list list->f32vector
 
     f64vector? make-f64vector f64vector f64vector-length f64vector-ref
-    f64vector-set! f64vector->list list->f64vector)  
+    f64vector-set! f64vector->list list->f64vector)
   (import (rnrs) (srfi :28))
 
   (define-syntax define-integer-vector
@@ -64,7 +73,7 @@
                            [(bytevector-ref bytevector-set!)
                             (let ([signed-char (if signed? #\s #\u)])
                               (if (fx=? bit-size 8)
-                                  (list 
+                                  (list
                                     (format-id #'k "bytevector-~a~s-ref" signed-char bit-size)
                                     (format-id #'k "bytevector-~a~s-set!" signed-char bit-size))
                                   (list
