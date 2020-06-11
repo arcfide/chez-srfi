@@ -1162,15 +1162,14 @@
          (f (car lis1) (car lis2))
          (recur (cdr lis1) (cdr lis2)))))
     ;; N-ary case
-    ((f lis1 lis2 lis3 . lists)
+    ((f lis1 lis2 . lists)
      (check-arg procedure? f for-each)
-     (let recur ((lis1 lis1) (lis2 lis2) (lis3 lis3)
-                 (lists lists))
-       (unless (or (null-list? lis1) (null-list? lis2) (null-list? lis3))
+     (let recur ((lis1 lis1) (lis2 lis2) (lists lists))
+       (unless (or (null-list? lis1) (null-list? lis2))
          (receive (cars cdrs) (%cars+cdrs lists)
            (when (pair? cars)
-             (apply f (car lis1) (car lis2) (car lis3) cars)      ; Do head first,
-             (recur (cdr lis1) (cdr lis2) (cdr lis3) cdrs)))))))) ; then tail.
+             (apply f (car lis1) (car lis2) cars)      ; Do head first,
+             (recur (cdr lis1) (cdr lis2) cdrs)))))))) ; then tail.
 
 
 ;;; filter, remove, partition
