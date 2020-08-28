@@ -89,7 +89,7 @@
     (if %enforce-comparator-type-tests
         (lambda (x . rest)
           (cond ((not (okay? x))
-                 (error "key rejected by hash-table comparator"
+                 (error #f "key rejected by hash-table comparator"
                         x
                         comparator))
                 ((null? rest)
@@ -262,7 +262,7 @@
     (let loop ((kvs rest))
       (cond
        ((null? kvs) #f)
-       ((null? (cdr kvs)) (error "hash-table: wrong number of arguments"))
+       ((null? (cdr kvs)) (error #f "hash-table: wrong number of arguments"))
        ((hashtable-contains? ht (car kvs))
         (error "hash-table: two equivalent keys were provided"
                (car kvs)))

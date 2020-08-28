@@ -246,7 +246,7 @@
 ;; gmerge
 (define gmerge
   (case-lambda
-    ((<) (error "wrong number of arguments for gmerge"))
+    ((<) (error #f "wrong number of arguments for gmerge"))
     ((< gen) gen)
     ((< genleft genright)
      (let ((left (genleft))
@@ -274,7 +274,7 @@
 ;; gmap
 (define gmap
   (case-lambda
-    ((proc) (error "wrong number of arguments for gmap"))
+    ((proc) (error #f "wrong number of arguments for gmap"))
     ((proc gen)
      (lambda ()
        (let ((item (gen)))

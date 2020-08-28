@@ -74,8 +74,8 @@
   (make-raw-comparator
     (if (eq? type-test #t) (lambda (x) #t) type-test)
     (if (eq? equality #t) (lambda (x y) (eqv? (ordering x y) 0)) equality)
-    (if ordering ordering (lambda (x y) (error "ordering not supported")))
-    (if hash hash (lambda (x y) (error "hashing not supported")))
+    (if ordering ordering (lambda (x y) (error #f "ordering not supported")))
+    (if hash hash (lambda (x y) (error #f "hashing not supported")))
     (if ordering #t #f)
     (if hash #t #f)))
 
@@ -89,7 +89,7 @@
 (define (comparator-check-type comparator obj)
   (if (comparator-test-type comparator obj)
     #t
-    (error "comparator type check failed" comparator obj)))
+    (error #f "comparator type check failed" comparator obj)))
 
 ;; Invoke the hash function
 (define (comparator-hash comparator obj)
