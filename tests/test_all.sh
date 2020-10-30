@@ -23,6 +23,7 @@ export CHEZSCHEMELIBDIRS="$1"
 SCHEME=scheme-script
 
 tests='
+testing.sps
 and-let%2a.sps
 char-sets.sps
 compare-procedures.sps
@@ -41,7 +42,6 @@ rec.sps
 records.sps
 regexp.sps
 tables-test.sps
-testing.sps
 vectors.sps
 '
 
