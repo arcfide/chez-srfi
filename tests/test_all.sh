@@ -18,7 +18,7 @@ set -o errexit
 set -o xtrace
 
 # Set libdirs to library under test only.
-CHEZSCHEMELIBDIRS="$1"
+export CHEZSCHEMELIBDIRS="$1"
 
 SCHEME=scheme-script
 
