@@ -1,0 +1,19 @@
+name: Continuous Integration
+
+on: [pull_request, push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: install chez scheme
+        run: sudo apt install chezscheme
+      - name: run tests
+        run: |
+          cd ../
+          ln -s $(pwd)/chez-srfi $(pwd)/srfi
+          cd srfi
+          scheme-script link-dirs.chezscheme.sps
+          cd tests
+          sh test_all.sh ../../
