@@ -43,6 +43,7 @@ records.sps
 regexp.sps
 tables-test.sps
 vectors.sps
+bitwise-operations.sps
 boxes.sps
 '
 

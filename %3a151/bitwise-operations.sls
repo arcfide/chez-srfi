@@ -19,14 +19,14 @@
 (library (srfi :151 bitwise-operations)
   (export
     bitwise-not
-    bitwise-and   bitwise-ior 
+    bitwise-and   bitwise-ior
     bitwise-xor   bitwise-eqv
-    bitwise-nand  bitwise-nor 
+    bitwise-nand  bitwise-nor
     bitwise-andc1 bitwise-andc2
-    bitwise-orc1  bitwise-orc2 
+    bitwise-orc1  bitwise-orc2
 
-    arithmetic-shift bit-count 
-    integer-length bitwise-if 
+    arithmetic-shift bit-count
+    integer-length bitwise-if
 
     bit-set? copy-bit bit-swap
     any-bit-set? every-bit-set?
@@ -49,11 +49,11 @@
   ;;;
   ;;; Olin Shivers is the sole author of this code, and he has placed it in
   ;;; the public domain.
-  ;;; 
+  ;;;
   ;;; A good implementation might choose to provide direct compiler/interpreter
   ;;; support for these derived functions, or might simply define them to be
   ;;; integrable -- i.e., inline-expanded.
-  ;;; 
+  ;;;
   ;;; This is a general definition, but less than efficient.  It should also
   ;;; receive primitive compiler/interpreter support so that the expensive
   ;;; n-ary mechanism is not invoked in the standard cases -- that is,
@@ -147,7 +147,9 @@
 
   (define bit-field-rotate
     (lambda (i count start end)
-      (bitwise-rotate-bit-field i start end count)))
+      (if (negative? count)
+          (bitwise-rotate-bit-field i start end (fx+ count (fx- end start)))
+          (bitwise-rotate-bit-field i start end count))))
 
   (define bit-field-reverse
     (lambda (i start end)
@@ -235,7 +237,7 @@
            [idx 0 (fx+ idx 1)]
            [i 0 (bitwise-copy-bit i idx (if (mapper state) 1 0))])
         ((stop? state) i))))
-              
+
   (define make-bitwise-generator
     (lambda (i)
       (let ([idx 0])
