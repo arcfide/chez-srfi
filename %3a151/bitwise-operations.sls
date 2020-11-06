@@ -147,7 +147,9 @@
 
   (define bit-field-rotate
     (lambda (i count start end)
-      (bitwise-rotate-bit-field i start end count)))
+      (if (negative? count)
+          (bitwise-rotate-bit-field i start end (fx+ count (fx- end start)))
+          (bitwise-rotate-bit-field i start end count))))
 
   (define bit-field-reverse
     (lambda (i start end)
