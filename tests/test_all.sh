@@ -47,6 +47,7 @@ vectors.sps
 bitwise-operations.sps
 boxes.sps
 ideques.sps
+generators-and-accumulators.sps
 fixnums.sps
 '
 
