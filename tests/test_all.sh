@@ -46,6 +46,7 @@ tables-test.sps
 vectors.sps
 bitwise-operations.sps
 boxes.sps
+ideques.sps
 ilists.sps
 lseqs.sps
 generators-and-accumulators.sps
