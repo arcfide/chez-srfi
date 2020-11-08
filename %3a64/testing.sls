@@ -54,7 +54,7 @@
     (srfi :23 error tricks)
     (srfi private include))
 
-    (define (eval form)
+  (define (eval form)
     (rnrs:eval form (environment '(rnrs)
                                  '(rnrs eval)
                                  '(rnrs mutable-pairs)
