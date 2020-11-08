@@ -46,6 +46,7 @@ tables-test.sps
 vectors.sps
 bitwise-operations.sps
 boxes.sps
+generators-and-accumulators.sps
 fixnums.sps
 '
 
