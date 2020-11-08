@@ -6,9 +6,20 @@
 ;; Tests for SRFI 5
 
 (import
-  (rnrs)
-  (srfi :143 fixnums)
-  (srfi :64 testing))
+ (except (rnrs)
+         fixnum? fx=? fx<? fx>? fx<=? fx>=? fxzero? fxpositive? fxnegative? fxodd?
+         fxeven? fxmax fxmin
+
+         fx+ fx- fx*
+
+         fx+/carry fx-/carry fx*/carry
+
+         fxnot fxand fxior fxxor fxarithmetic-shift fxarithmetic-shift-left
+         fxarithmetic-shift-right fxbit-count fxlength fxif fxbit-set? fxcopy-bit
+         fxbit-field)
+
+ (srfi :143 fixnums)
+ (srfi :64 testing))
 
 (test-begin "fixnums")
 
@@ -235,7 +246,6 @@
   (test-equal "fixnum-073" 2 (fxfirst-set-bit -4)))
 
 (define check-74
-  ;; TODO: investigate why this is not good
   (test-equal "fixnum-074" #t (fxbit-set? 0 1)))
 
 (define check-75
