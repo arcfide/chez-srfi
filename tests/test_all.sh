@@ -25,6 +25,7 @@ SCHEME=scheme-script
 tests='
 testing.sps
 and-let%2a.sps
+ascii.sps
 char-sets.sps
 compare-procedures.sps
 cut.sps
@@ -46,10 +47,10 @@ vectors.sps
 bitwise-operations.sps
 boxes.sps
 generators-and-accumulators.sps
+fixnums.sps
 '
 
 fails='
-ascii.sps
 multi-dimensional-arrays.sps
 time.sps
 '
