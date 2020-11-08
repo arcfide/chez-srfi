@@ -24,6 +24,7 @@
     bytevector-accumulator! sum-accumulator product-accumulator)
   (import (rnrs)
           (only (srfi :1) make-list)
+          (only (chezscheme) call/1cc)
           (srfi private include)
           (srfi private define-values))
 

@@ -101,15 +101,15 @@
   (define return #f)
   (define resume #f)
   (define yield (lambda (v) (call/cc (lambda (r) (set! resume r) (return v)))))
-  (lambda () (call/cc (lambda (cc) (set! return cc)
-                              (if resume
-                                  (resume (if #f #f))  ; void? or yield again?
-                                  (begin (proc yield)
-                                         (set! resume (lambda (v) (return (eof-object))))
-                                         (return (eof-object))))))))
+  (lambda () (call/1cc (lambda (cc) (set! return cc)
+                               (if resume
+                                   (resume (if #f #f))  ; void? or yield again?
+                                   (begin (proc yield)
+                                          (set! resume (lambda (v) (return (eof-object))))
+                                          (return (eof-object))))))))
 
 
-;; list->generator
+;; List->generator
 (define (list->generator lst)
   (lambda () (if (null? lst)
                  (eof-object)
