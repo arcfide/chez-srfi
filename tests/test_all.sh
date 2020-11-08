@@ -45,6 +45,7 @@ tables-test.sps
 vectors.sps
 bitwise-operations.sps
 boxes.sps
+ilists.sps
 '
 
 fails='
