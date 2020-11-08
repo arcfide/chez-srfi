@@ -4,7 +4,6 @@
 
 (library (srfi :64 testing)
   (export
-    pk
     test-begin
     test-end test-assert test-eqv test-eq test-equal
     test-approximate test-error test-apply test-with-runner
@@ -54,10 +53,6 @@
     (srfi :39 parameters)
     (srfi :23 error tricks)
     (srfi private include))
-
-  (define (pk . args)
-    (write args)(newline)
-    (car (reverse args)))
 
   (define (eval form)
     (rnrs:eval form (environment '(rnrs)
