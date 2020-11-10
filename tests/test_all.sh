@@ -46,6 +46,8 @@ tables-test.sps
 vectors.sps
 bitwise-operations.sps
 boxes.sps
+mapping.sps
+mapping-hash.sps
 ideques.sps
 ilists.sps
 lseqs.sps
