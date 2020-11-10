@@ -45,6 +45,8 @@ tables-test.sps
 vectors.sps
 bitwise-operations.sps
 boxes.sps
+mapping.sps
+mapping-hash.sps
 '
 
 fails='
