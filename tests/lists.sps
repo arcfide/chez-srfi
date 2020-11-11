@@ -293,6 +293,9 @@
 (or (equal? '(c 3 b 2 a 1) (fold cons* '() '(a b c) '(1 2 3 4 5)))
     (fail 'fold:1))
 
+(or (equal? '(a b c) (fold-right cons* '() '(a b c)))
+    (fail 'fold-right:0))
+
 (or (equal? '(a 1 b 2 c 3) (fold-right cons* '() '(a b c) '(1 2 3 4 5)))
     (fail 'fold-right:1))
 
