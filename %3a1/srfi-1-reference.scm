@@ -898,7 +898,7 @@
      (check-arg procedure? kons fold-right)
      (let recur ((lis lis1))
        (if (null-list? lis) knil
-           (kons (car lis1) (recur (cdr lis))))))
+           (kons (car lis) (recur (cdr lis))))))
     ;; Fast path 2
     ((kons knil lis1 lis2)
      (check-arg procedure? kons fold-right)
