@@ -140,7 +140,7 @@
     ;; Copy a sob, sharing the constructor.
 
     (define (sob-copy sob)
-      (raw-make-sob (hash-table-copy (sob-hash-table sob))
+      (raw-make-sob (hash-table-copy (sob-hash-table sob) #t)
                     (sob-comparator sob)
                     (sob-multi? sob)))
 
