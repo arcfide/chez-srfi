@@ -907,17 +907,12 @@
            knil
            (kons (car lis1) (car lis2) (recur (cdr lis1) (cdr lis2))))))
     ;; N-ary case
-    ((kons knil lis1 lis2 lis3 . lists)
+    ((kons knil . lists)
      (check-arg procedure? kons fold-right)
-     (let recur ((lis1 lis1) (lis2 lis2) (lis3 lis3)
-                 (lists lists))
-       (if (or (null-list? lis1) (null-list? lis2) (null-list? lis3))
-           knil
-           (let ((cdrs (%cdrs lists)))
-             (if (null? cdrs) knil
-                 (apply kons (car lis1) (car lis2) (car lis3)
-                        (%cars+ lists (recur (cdr lis1) (cdr lis2) (cdr lis3)
-                                             cdrs))))))))))
+     (let recur ((lists lists))
+       (let ((cdrs (%cdrs lists)))
+         (if (null? cdrs) knil
+             (apply kons (%cars+ lists (recur cdrs)))))))))
 
 
 (define pair-fold-right
