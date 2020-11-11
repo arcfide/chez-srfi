@@ -6,6 +6,8 @@
         (srfi :128)
         (srfi :64))
 
+(define (error* msg . args)
+  (error 'sets-and-bags-tests msg args))
 
 ;; Below are some default comparators provided by SRFI-114,
 ;; but not SRFI-128, which this SRFI has transitioned to
@@ -225,7 +227,7 @@
 (define ym (set char-comparator #\y #\m))
 
 (define-values (set1 obj1)
-  (set-search! (set-copy yam) #\! failure/insert error))
+  (set-search! (set-copy yam) #\! failure/insert error*))
 
 (define check-026
   (test-equal "sets-and-bags-026" #t (set=? yam! set1)))
@@ -234,7 +236,7 @@
   (test-equal "sets-and-bags-027" 1 obj1))
 
 (define-values (set2 obj2)
-  (set-search! (set-copy yam) #\! failure/ignore error))
+  (set-search! (set-copy yam) #\! failure/ignore error*))
 
 (define check-028
   (test-equal "sets-and-bags-028" #t (set=? yam set2)))
@@ -243,7 +245,7 @@
   (test-equal "sets-and-bags-029" 2 obj2))
 
 (define-values (set3 obj3)
-  (set-search! (set-copy yam) #\y error success/update))
+  (set-search! (set-copy yam) #\y error* success/update))
 
 (define check-030
   (test-equal "sets-and-bags-030" #t (set=? bam set3)))
@@ -252,7 +254,7 @@
   (test-equal "sets-and-bags-031" 3 obj3))
 
 (define-values (set4 obj4)
-  (set-search! (set-copy yam) #\a error success/remove))
+  (set-search! (set-copy yam) #\a error* success/remove))
 
 (define check-032
   (test-equal "sets-and-bags-032" #t (set=? ym set4)))
@@ -536,10 +538,10 @@
 (define homo (set eqv-comparator 1 2 3 4 5))
 
 (define check-102
-  (test-equal "sets-and-bags-102" 'a (set-find symbol? hetero (lambda () (error "wrong")))))
+  (test-equal "sets-and-bags-102" 'a (set-find symbol? hetero (lambda () (error* "wrong")))))
 
 (define check-103
-  (test-error "sets-and-bags-103" (set-find symbol? homo (lambda () (error "wrong")))))
+  (test-error "sets-and-bags-103" (set-find symbol? homo (lambda () (error* "wrong")))))
 
 (define check-104
   (test-equal "sets-and-bags-104" #t (set-any? symbol? hetero)))
@@ -713,7 +715,7 @@
 (define ym-bis (bag char-comparator #\y #\m))
 
 (define-values (bag1 obj1-bis)
-  (bag-search! (bag-copy yam2) #\! failure/insert/bis error))
+  (bag-search! (bag-copy yam2) #\! failure/insert/bis error*))
 
 (define check-142
   (test-equal "sets-and-bags-142" #t (bag=? yam2! bag1)))
@@ -722,7 +724,7 @@
   (test-equal "sets-and-bags-143" 1 obj1-bis))
 
 (define-values (bag2 obj2-bis)
-  (bag-search! (bag-copy yam2) #\! failure/ignore/bis error))
+  (bag-search! (bag-copy yam2) #\! failure/ignore/bis error*))
 
 (define check-144
   (test-equal "sets-and-bags-144" #t (bag=? yam2 bag2)))
@@ -731,7 +733,7 @@
   (test-equal "sets-and-bags-145" 2 obj2-bis))
 
 (define-values (bag3 obj3-bis)
-  (bag-search! (bag-copy yam2) #\y error success/update/bis))
+  (bag-search! (bag-copy yam2) #\y error* success/update/bis))
 
 (define check-146
   (test-equal "sets-and-bags-146" #t (bag=? bam2 bag3)))
@@ -740,7 +742,7 @@
   (test-equal "sets-and-bags-147" 3 obj3-bis))
 
 (define-values (bag4 obj4-bis)
-  (bag-search! (bag-copy yam2) #\a error success/remove/bis))
+  (bag-search! (bag-copy yam2) #\a error* success/remove/bis))
 
 (define check-148
   (test-equal "sets-and-bags-148" #t (bag=? ym-bis bag4)))
@@ -1085,10 +1087,10 @@
 (define homo-bis (bag eqv-comparator 1 2 3 4 5))
 
 (define check-239
-  (test-equal "sets-and-bags-239" 'a (bag-find symbol? hetero-bis (lambda () (error "wrong")))))
+  (test-equal "sets-and-bags-239" 'a (bag-find symbol? hetero-bis (lambda () (error* "wrong")))))
 
 (define check-240
-  (test-error "sets-and-bags-240" (bag-find symbol? homo-bis (lambda () (error "wrong")))))
+  (test-error "sets-and-bags-240" (bag-find symbol? homo-bis (lambda () (error* "wrong")))))
 
 (define check-241
   (test-equal "sets-and-bags-241" #t (bag-any? symbol? hetero-bis)))
