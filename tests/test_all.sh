@@ -53,6 +53,7 @@ ilists.sps
 lseqs.sps
 generators-and-accumulators.sps
 fixnums.sps
+sets-and-bags.sps
 '
 
 fails='
