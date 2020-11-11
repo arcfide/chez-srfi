@@ -1169,8 +1169,7 @@
                                    (bag-increment! mybag-bis 1 3)
                                    (bag-size mybag-bis))))
 
-(define check-260
-  (test-equal "sets-and-bags-260" #t (bag-decrement! mybag-bis 1 2)))
+(define side-effect (bag-decrement! mybag-bis 1 2))
 
 (define check-261
   (test-equal "sets-and-bags-261" 3 (bag-size mybag-bis)))
