@@ -299,6 +299,12 @@
 (or (equal? '(a 1 b 2 c 3) (fold-right cons* '() '(a b c) '(1 2 3 4 5)))
     (fail 'fold-right:1))
 
+(or (equal? '(a 1 x b 2 y c 3 z) (fold-right cons* '() '(a b c) '(1 2 3) '(x y z)))
+    (fail 'fold-right:2))
+
+(or (equal? '(a 1 x 7 b 2 y 8 c 3 z 9) (fold-right cons* '() '(a b c) '(1 2 3) '(x y z) '(7 8 9)))
+    (fail 'fold-right:3))
+
 (or (let* ((x (list 1 2 3))
            (r (list x (cdr x) (cddr x)))
            (y (pair-fold (lambda (pair tail)
