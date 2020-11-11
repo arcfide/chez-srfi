@@ -879,17 +879,12 @@
            ans
            (lp (cdr lis1) (cdr lis2) (kons (car lis1) (car lis2) ans)))))
     ;; N-ary case
-    ((kons knil lis1 lis2 lis3 . lists)
+    ((kons knil . lists)
      (check-arg procedure? kons fold)
-     (let lp ((lis1 lis1) (lis2 lis2) (lis3 lis3)
-              (lists lists) (ans knil))
-       (if (or (null-list? lis1) (null-list? lis2) (null-list? lis3))
-           (receive (cars+ans cdrs) (%cars+cdrs+ lists ans)
-             (if (null? cars+ans)
-                 ans
-                 (lp (cdr lis1) (cdr lis2) (cdr lis3) cdrs
-                     (apply kons (car lis1) (car lis2) (car lis3) cars+ans)))))))))
-
+     (let lp ((lists lists) (ans knil))	; N-ary case
+       (receive (cars+ans cdrs) (%cars+cdrs+ lists ans)
+         (if (null? cars+ans) ans ; Done.
+             (lp cdrs (apply kons cars+ans))))))))
 
 (define fold-right
   (case-lambda
