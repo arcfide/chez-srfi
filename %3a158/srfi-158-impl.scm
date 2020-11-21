@@ -167,7 +167,6 @@
 
 
 ;; make-for-each-generator
-                                        ;FIXME: seems to fail test
 (define (make-for-each-generator for-each obj)
   (make-coroutine-generator (lambda (yield) (for-each yield obj))))
 
