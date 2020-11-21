@@ -167,7 +167,6 @@
 
 
 ;; make-for-each-generator
-                                        ;FIXME: seems to fail test
 (define (make-for-each-generator for-each obj)
   (make-coroutine-generator (lambda (yield) (for-each yield obj))))
 
@@ -327,18 +326,17 @@
 
 ;; gtake
 (define gtake
-  (case-lambda ((gen k) (gtake gen k (eof-object)))
-               ((gen k padding)
-                (make-coroutine-generator (lambda (yield)
-                                            (if (> k 0)
-                                                (let loop ((i 0) (v (gen)))
-                                                  (begin (if (eof-object? v) (yield padding) (yield v))
-                                                         (if (< (+ 1 i) k)
-                                                             (loop (+ 1 i) (gen))
-                                                             (eof-object))))
-                                                (eof-object)))))))
-
-
+  (case-lambda
+   ((gen k) (gtake gen k (eof-object)))
+   ((gen k padding)
+    (define (%gtake gen k)
+      (lambda ()
+        (if (zero? k)
+            (eof-object)
+            (begin
+              (set! k (- k 1))
+              (gen)))))
+    (%gtake (gappend gen (lambda () padding)) k))))
 
 ;; gdrop
 (define (gdrop gen k)
