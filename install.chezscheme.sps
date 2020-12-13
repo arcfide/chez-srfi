@@ -257,9 +257,12 @@ exec /usr/bin/env ${SCHEME:-scheme} --compile-imported-libraries --script \"$0\"
     (copy-directory (join-path src-dir "private") dest-dir)
     ;; create a null (srfi private include) library since those imports haven't been removed.
     (delete-file (join-path dest-dir "private" "include.sls"))
-    (copy-file
-      (join-path src-dir "private" "install" "include.chezscheme.sls")
-      (join-path dest-dir "private" "include.chezscheme.sls"))))
+    (call-with-output-file (join-path dest-dir "private" "include.chezscheme.sls")
+      (lambda (p)
+        (pretty-print '(library (srfi private include)
+                         (export)
+                         (import (chezscheme)))
+                      p)))))
 
 (define install-tests
   (lambda (src-dir dest-dir)
