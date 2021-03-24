@@ -69,6 +69,7 @@ These SRFIs are available:
   (srfi :141 integer-division)
   (srfi :143 fixnums)
   (srfi :145 assumptions)
+  (srfi :146 mappings)
   (srfi :151 bitwise-operations)
   (srfi :152 strings)
   (srfi :156 predicate-combiners)
