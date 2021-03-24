@@ -51,6 +51,7 @@ These SRFIs are available:
   (srfi :78 lightweight-testing)
   (srfi :98 os-environment-variables)
   (srfi :99 records)
+  (srfi :111 boxes)
   (srfi :115 regex)
   (srfi :117 list-queues)
   (srfi :125 hashtables)
