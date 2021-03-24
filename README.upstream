@@ -65,6 +65,7 @@ These SRFIs are available:
   (srfi :131 records)
   (srfi :132 sorting)
   (srfi :133 vectors)
+  (srfi :134 ideques)
   (srfi :141 integer-division)
   (srfi :143 fixnums)
   (srfi :145 assumptions)
