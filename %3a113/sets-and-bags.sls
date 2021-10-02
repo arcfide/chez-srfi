@@ -8,7 +8,7 @@
    set-delete set-delete! set-delete-all set-delete-all! set-search!
    set-size set-find set-count set-any? set-every?
    set-map set-for-each set-fold
-   set-filter set-remove set-remove set-partition
+   set-filter set-remove set-partition
    set-filter! set-remove! set-partition!
    set-copy set->list list->set list->set!
    set=? set<? set>? set<=? set>=?
