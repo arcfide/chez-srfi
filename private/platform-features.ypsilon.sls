@@ -16,7 +16,10 @@
 
   (define (run-time-features)
     (OS-id-features
-     (architecture-feature 'operating-system)
+     (guard (exn ((assertion-violation? exn)
+                  ;; Fallback for releases before v2.0.1
+                  (architecture-feature 'operating-system)))
+       (architecture-feature 'sysname))
      '(("linux" linux posix)
        ("solaris" solaris posix)
        ("darwin" darwin posix)
