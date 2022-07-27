@@ -54,6 +54,7 @@ lseqs.sps
 generators-and-accumulators.sps
 fixnums.sps
 sets-and-bags.sps
+flexvectors.sps
 '
 
 fails='
