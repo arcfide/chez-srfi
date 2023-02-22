@@ -55,6 +55,7 @@ generators-and-accumulators.sps
 fixnums.sps
 sets-and-bags.sps
 flexvectors.sps
+transducers.sps
 '
 
 fails='
