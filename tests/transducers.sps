@@ -2,6 +2,7 @@
 
 (import
   (rnrs)
+  (only (srfi :1) iota)
   (srfi :64 testing)
   (srfi :171 transducers))
 
