@@ -9,8 +9,8 @@
 
 (define numeric-list (iota 5))
 (define numeric-vec (list->vector numeric-list))
-(define string "0123456789abcdef")
-(define list-of-chars (string->list string))
+(define example-string "0123456789abcdef")
+(define list-of-chars (string->list example-string))
 (define replace-alist '((1 . s) (2 . c) (3 . h) (4 . e) (5 . m)))
 
 (test-begin "transducers")
@@ -18,9 +18,9 @@
 (test-equal '(0 2 4) (list-transduce (tfilter even?) rcons numeric-list))
 (test-equal '(1 3 5) (list-transduce (compose (tfilter even?) (tmap add1)) rcons numeric-list))
 
-(test-equal (string-transduce (tmap char->integer) rcons string) (list-transduce (tmap char->integer) rcons list-of-chars))
-(test-equal 6 (string-transduce (tfilter char-alphabetic?) rcount string))
-(test-equal (list-transduce (tremove char-alphabetic?) rcount list-of-chars) (string-transduce (tremove char-alphabetic?) rcount string))
+(test-equal (string-transduce (tmap char->integer) rcons example-string) (list-transduce (tmap char->integer) rcons list-of-chars))
+(test-equal 6 (string-transduce (tfilter char-alphabetic?) rcount example-string))
+(test-equal (list-transduce (tremove char-alphabetic?) rcount list-of-chars) (string-transduce (tremove char-alphabetic?) rcount example-string))
 (test-equal '(s c h e m e  r o c k s) (list-transduce (treplace replace-alist) rcons '(1 2 3 4 5 4 r o c k s) ))
 
 (test-equal 6 (list-transduce (ttake 4) + numeric-list))
