@@ -47,7 +47,7 @@
 
 ; -- utilities --
 
-(define check:write write)
+;(define check:write write)
 
 (define (print/header/padded x header padding)
   (define (print/lines)
@@ -79,7 +79,7 @@
 
 ; -- mode --
 
-(define check:mode #f)
+;(define check:mode #f)
 
 (define (check-set-mode! mode)
   (set! check:mode
