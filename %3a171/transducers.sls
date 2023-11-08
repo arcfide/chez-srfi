@@ -14,7 +14,7 @@
 
 (library (srfi :171 transducers)
   (export rcons reverse-rcons rcount rany revery
-          list-transduce vector-transduce string-transduce bytevector-u8-transduce port-transduce
+          list-transduce vector-transduce string-transduce bytevector-u8-transduce port-transduce generator-transduce
           compose
           tmap tfilter tremove treplace tfilter-map tdrop tdrop-while ttake ttake-while
           tconcatenate tappend-map tdelete-neighbor-dupes tdelete-duplicates tflatten
@@ -130,14 +130,22 @@
        (let* ((xf (xform f))
               (result (port-reduce xf init by port)))
          (xf result)))))
-
-  ;; compose unary functions
-  (define compose
+  
+  (define generator-transduce
     (case-lambda
-      (() (lambda (x) x))
-      ((f) f)
-      ((f g) (lambda (x) (f (g x))))
-      ((f . gs) (reduce compose f gs))))
+      ((xform f gen)
+       (generator-transduce xform f (f) gen))
+      ((xform f init gen)
+       (let* ((xf (xform f))
+              (result (generator-reduce xf init gen)))
+         (xf result)))))
+  
+  ;; compose unary functions
+  (define (compose . fns)
+    (define (make-chain fn chain)
+      (lambda args
+        (call-with-values (lambda () (apply fn args)) chain)))
+    (reduce make-chain values fns))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; Transducers!    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
