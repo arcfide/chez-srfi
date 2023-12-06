@@ -1,10 +1,11 @@
 #!r6rs
 
 (import
-  (rnrs)
-  (only (srfi :1) iota)
-  (srfi :64 testing)
-  (srfi :171 transducers))
+ (rnrs)
+ (only (srfi :1) iota)
+ (srfi :64 testing)
+ (srfi :171 transducers)
+ (srfi :158 generators-and-accumulators))
 
 (define (add1 x) (+ x 1))
 
@@ -18,6 +19,7 @@
 (test-equal '(1 2 3 4 5) (list-transduce (tmap add1) rcons numeric-list))
 (test-equal '(0 2 4) (list-transduce (tfilter even?) rcons numeric-list))
 (test-equal '(1 3 5) (list-transduce (compose (tfilter even?) (tmap add1)) rcons numeric-list))
+(test-equal '(2 4 6) (list-transduce (compose (tfilter even?) (tmap add1) (tmap add1)) rcons numeric-list))
 
 (test-equal (string-transduce (tmap char->integer) rcons example-string) (list-transduce (tmap char->integer) rcons list-of-chars))
 (test-equal 6 (string-transduce (tfilter char-alphabetic?) rcount example-string))
@@ -48,6 +50,8 @@
 (test-equal '(0 and 1 and 2 and 3 and 4) (list-transduce (tinterpose 'and) rcons numeric-list))
 
 (test-equal '((-1 . 0) (0 . 1) (1 . 2) (2 . 3) (3 . 4)) (list-transduce (tenumerate (- 1)) rcons numeric-list))
+
+(test-equal '(1 3 5) (generator-transduce (compose (tfilter even?) (tmap add1)) rcons (make-range-generator 0 5)))
 
 (test-end "transducers")
 
