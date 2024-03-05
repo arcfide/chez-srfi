@@ -123,5 +123,12 @@
            (if (= ptr-to-ptr 0)
                0
                (foreign-ref 'void* ptr-to-ptr 0))))]
+      [(ta6fb a6fb)
+        (load-shared-object "libc.so.7")
+        (lambda ()
+          (let ([ptr-to-ptr (foreign-entry "environ")])
+            (if (= ptr-to-ptr 0)
+              0
+              (foreign-ref 'void* ptr-to-ptr 0))))]
       [else (error 'get-environment-variables
                    "currently unsupoorted on ~s" (machine-type))])))
