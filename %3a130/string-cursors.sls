@@ -24,8 +24,9 @@
     string-reverse string-concatenate string-concatenate-reverse string-fold
     string-fold-right string-for-each-cursor string-replicate string-count
     string-replace string-split string-filter string-remove)
-  (import (rnrs)
-          (rename (only (srfi :13) string-index string-index-right
+  (import (except (rnrs) string-copy)
+          (rename (only (srfi :13) string-copy
+                        string-index string-index-right
                         string-contains string-filter string-replace
                         string-count string-fold-right string-fold
                         string-concatenate-reverse string-concatenate
