@@ -3,7 +3,7 @@
 ;;; SPDX-License-Identifier: MIT
 
 (import (rnrs)
-        (srfi :1)
+        (only (srfi :1) iota every any fold unfold)
         (srfi :64)
         (srfi :128)
         (srfi :224))
