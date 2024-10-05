@@ -74,6 +74,8 @@
 ;;; so we test these first.  These also test the basic fxmapping
 ;;; constructor.
 
+(test-begin "SRFI 224")
+
 (test-group "Equality"
   (test-eqv #t (fxmapping=? default-comp empty-fxmap (fxmapping)))
   (test-eqv #t (fxmapping=? default-comp (fxmapping 10 'a) (fxmapping 10 'a)))
@@ -1041,3 +1043,5 @@
                (fxmapping-relation-map (lambda (k v) (values (- k) v))
                                        (fxmapping 0 'a -1 'b -2 'c))))
   )
+
+(test-end "SRFI 224")
