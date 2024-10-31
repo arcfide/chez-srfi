@@ -101,7 +101,7 @@
        (load-shared-object "msvcrt.dll")
        (load-shared-object "kernel32.dll")
        (foreign-procedure "GetEnvironmentStrings" () void*)]
-      [(i3osx a6osx ti3osx ta6osx)
+      [(i3osx a6osx ti3osx ta6osx tarm64osx)
        (load-shared-object "libc.dylib")
        (let ([p (foreign-procedure "_NSGetEnviron" () void*)])
          (lambda ()
