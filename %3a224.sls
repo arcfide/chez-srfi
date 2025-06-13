@@ -63,7 +63,7 @@
           (srfi :143)
           (srfi :145)
           (only (srfi :158) make-coroutine-generator)
-          (only (srfi private include) include/resolve))
+          (srfi private include))
 
   (include/resolve ("srfi" "%3a224") "matchers.scm")
   (include/resolve ("srfi" "%3a224") "trie.scm")
