@@ -51,8 +51,7 @@
 	  (srfi :0 cond-expand)
 	  (srfi :64 testing)
 	  (srfi :158 generators-and-accumulators)
-	  (srfi :194 random-data-generators)
-	  (cond-expand ((srfi :144) (import (srfi :144))) (else)))
+	  (srfi :194 random-data-generators))
 
   ;; Constants
 
@@ -66,10 +65,14 @@
   (define min-exact (least-fixnum))
 
   ;; Value range for inexact random generators.
-  (define max-inexact (cond-expand ((srfi :144) fl-greatest)
-                                   (else max-exact)))
-  (define min-inexact (cond-expand ((srfi :144) fl-least)
-                                   (else min-exact)))
+  (cond-expand
+   ((srfi :144)
+    (import (srfi :144))
+    (define max-inexact fl-greatest)
+    (define min-inexact fl-least))
+   (else
+    (define max-inexact max-exact)
+    (define min-inexact min-exact)))
 
   ;; Maximum size for random bytevector/list/string/symbol/vector generators.
   (define max-size 1001)
