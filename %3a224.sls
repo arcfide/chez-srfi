@@ -59,6 +59,8 @@
           (rnrs lists (6))
           (only (srfi :1) fold every)
           (srfi :9)
+          (rename (rnrs records syntactic (6))
+                  (define-record-type define-record-type*))
           (only (srfi :128) comparator? =?)
           (srfi :143)
           (srfi :145)

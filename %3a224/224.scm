@@ -20,10 +20,10 @@
 
 ;;;; Type
 
-(define-record-type <fxmapping>
-  (raw-fxmapping trie)
-  fxmapping?
-  (trie fxmapping-trie))
+(define-record-type* (<fxmapping> raw-fxmapping fxmapping?)
+  (nongenerative fxmapping-7a1f4d5b-a540-462b-82b1-47283c935b85)
+  (fields
+   (immutable trie fxmapping-trie)))
 
 ;;;; Constructors
 
