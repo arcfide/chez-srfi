@@ -4,7 +4,7 @@
 
 ;;; R6RS library file written for ChezScheme.
 
-(library (srfi :224)
+(library (srfi :224 integer-mappings)
   (export
    ;; Constructors
    fxmapping fxmapping-unfold fxmapping-accumulate alist->fxmapping
@@ -53,4 +53,21 @@
    fxsubmapping= fxsubmapping< fxsubmapping<= fxsubmapping>= fxsubmapping>
    fxmapping-split
    )
-  (import (srfi :224 integer-mappings)))
+
+  (import (rnrs base (6))
+          (rnrs control (6))
+          (rnrs lists (6))
+          (only (srfi :1) fold every)
+          (srfi :9)
+          (rename (rnrs records syntactic (6))
+                  (define-record-type define-record-type*))
+          (only (srfi :128) comparator? =?)
+          (srfi :143)
+          (srfi :145)
+          (only (srfi :158) make-coroutine-generator)
+          (srfi private include))
+
+  (include/resolve ("srfi" "%3a224") "matchers.scm")
+  (include/resolve ("srfi" "%3a224") "trie.scm")
+  (include/resolve ("srfi" "%3a224") "224.scm")
+  )
