@@ -57,6 +57,8 @@ sets-and-bags.sps
 flexvectors.sps
 transducers.sps
 fxmappings.sps
+srfi-160-base.sps
+srfi-160-nonbase.sps
 '
 
 fails='
