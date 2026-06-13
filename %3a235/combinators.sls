@@ -60,10 +60,12 @@
           never
           boolean)
   (import (except (rnrs (6)) assoc)
-	  (only (chezscheme) include)
-	  (only (srfi :1 lists)
-		drop drop-right
-		take take-right
-		set-cdr!
-		assoc))
+          (only (chezscheme) include)
+          (only (srfi :1 lists)
+                drop drop-right
+                take take-right
+                set-cdr!
+                assoc)
+          (srfi private include))
+
   (include/resolve ("srfi" "%3a235") "impl.scm"))
