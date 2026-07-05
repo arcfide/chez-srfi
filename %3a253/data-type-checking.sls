@@ -28,7 +28,8 @@
           lambda-checked define-checked
           case-lambda-checked
           define-record-type-checked)
-  (import (rnrs))
+  (import (except (rnrs) define-record-type)
+          (srfi :9 records))
 
   (define-syntax assume
     (syntax-rules ()
