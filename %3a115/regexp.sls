@@ -24,7 +24,7 @@
 ;; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 ;; THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-;; Converted from lib/chibi/regexp.sld to R6RS by Göran Weinholt.
+;; Converted from lib/chibi/regexp.sld to R6RS by Gwen Weinholt.
 
 (library (srfi :115 regexp)
   (export regexp regexp? valid-sre? rx regexp->sre char-set->sre
