@@ -1,4 +1,4 @@
-;; Copyright © 2020 Göran Weinholt
+;; Copyright © 2020 Gwen Weinholt
 ;; SPDX-License-Identifier: MIT
 #!r6rs
 

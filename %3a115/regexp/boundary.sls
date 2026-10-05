@@ -6,7 +6,7 @@
 ;;> \hyperlink["http://unicode.org/reports/tr29/"]{TR29} word
 ;;> boundaries.
 
-;; Converted from lib/chibi/char-set/boundary.sld to R6RS by Göran Weinholt.
+;; Converted from lib/chibi/char-set/boundary.sld to R6RS by Gwen Weinholt.
 
 (library (srfi :115 regexp boundary)
   (export char-set:regional-indicator
