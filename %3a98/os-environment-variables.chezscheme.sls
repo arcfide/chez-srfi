@@ -75,7 +75,7 @@
       s0))
 
   (define read-environ
-    (if (memq (machine-type) '(i3nt a6nt ti3nt ta6nt))
+    (if (memq (machine-type) '(i3nt a6nt ti3nt ta6nt arm64nt tarm64nt))
         (lambda (ptr)
           (let ([tb (make-text-buffer)])
             (let loop ([offset 0] [ls '()])
@@ -97,11 +97,11 @@
             
   (define get-environ-pointer
     (case (machine-type)
-      [(i3nt a6nt ti3nt ta6nt)
+      [(i3nt a6nt ti3nt ta6nt arm64nt tarm64nt)
        (load-shared-object "msvcrt.dll")
        (load-shared-object "kernel32.dll")
        (foreign-procedure "GetEnvironmentStrings" () void*)]
-      [(i3osx a6osx ti3osx ta6osx tarm64osx)
+      [(i3osx a6osx ti3osx ta6osx arm64osx tarm64osx)
        (load-shared-object "libc.dylib")
        (let ([p (foreign-procedure "_NSGetEnviron" () void*)])
          (lambda ()
@@ -109,21 +109,22 @@
              (if (= ptr-to-ptr 0)
                  0
                  (foreign-ref 'void* ptr-to-ptr 0)))))]
-      [(i3le a6le ti3le ta6le arm32le ppc32le)
+      [(i3le a6le ti3le ta6le arm32le ppc32le arm64le tarm64le)
        (load-shared-object "libc.so.6")
        (lambda ()
          (let ([ptr-to-ptr (foreign-entry "environ")])
            (if (= ptr-to-ptr 0)
                0
                (foreign-ref 'void* ptr-to-ptr 0))))]
-      [(i3ob a6ob ti3ob ta6ob i3nb a6nb ti3nb ta6nb)
+      [(i3ob a6ob ti3ob ta6ob arm64ob tarm64ob
+        i3nb a6nb ti3nb ta6nb arm64nb tarm64nb)
        (load-shared-object "libc.so")
        (lambda ()
          (let ([ptr-to-ptr (foreign-entry "environ")])
            (if (= ptr-to-ptr 0)
                0
                (foreign-ref 'void* ptr-to-ptr 0))))]
-      [(ta6fb a6fb)
+      [(ta6fb a6fb arm64fb tarm64fb)
         (load-shared-object "libc.so.7")
         (lambda ()
           (let ([ptr-to-ptr (foreign-entry "environ")])
