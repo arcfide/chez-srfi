@@ -40,7 +40,7 @@
 	  u64vector-comparator
 	  make-u64vector-generator)
 
-  (import (only (chezscheme) include assertion-violationf with-implicit)
+  (import (only (chezscheme) assertion-violationf with-implicit)
           (rename (rnrs base (6))
                   (exact? r6rs:exact?)
                   (inexact? r6rs:inexact?)
@@ -62,9 +62,10 @@
           (only (srfi :158 generators-and-accumulators) make-coroutine-generator)
           (only (srfi :194 random-data-generators) make-random-u64-generator)
           ;;
+          (srfi private include)
           (srfi :160 base))
 
-  (include "meta.chezscheme.scm")
+  (include/resolve ("srfi" "%3a160") "meta.chezscheme.scm")
 
   (define-meta-all u64vector #t
     u64vector? u64?

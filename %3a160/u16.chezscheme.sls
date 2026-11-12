@@ -40,7 +40,7 @@
 	  u16vector-comparator
 	  make-u16vector-generator)
 
-  (import (only (chezscheme) include assertion-violationf with-implicit)
+  (import (only (chezscheme) assertion-violationf with-implicit)
           (rename (rnrs base (6))
                   (exact? r6rs:exact?)
                   (inexact? r6rs:inexact?)
@@ -62,9 +62,10 @@
           (only (srfi :158 generators-and-accumulators) make-coroutine-generator)
           (only (srfi :194 random-data-generators) make-random-u16-generator)
           ;;
+          (srfi private include)
           (srfi :160 base))
 
-  (include "meta.chezscheme.scm")
+  (include/resolve ("srfi" "%3a160") "meta.chezscheme.scm")
 
   (define-meta-all u16vector #t
     u16vector? u16?

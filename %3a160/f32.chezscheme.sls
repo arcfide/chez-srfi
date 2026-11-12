@@ -40,7 +40,7 @@
 	  #;make-f32vector-comparator
 	  make-f32vector-generator)
 
-  (import (only (chezscheme) include assertion-violationf with-implicit)
+  (import (only (chezscheme) assertion-violationf with-implicit)
           (rename (rnrs base (6))
                   (exact? r6rs:exact?)
                   (inexact? r6rs:inexact?)
@@ -61,9 +61,10 @@
 	  (srfi :128 comparators)
           (only (srfi :158 generators-and-accumulators) make-coroutine-generator)
           ;;
+          (srfi private include)
           (srfi :160 base))
 
-  (include "meta.chezscheme.scm")
+  (include/resolve ("srfi" "%3a160") "meta.chezscheme.scm")
 
   (define-meta-all f32vector #t
     f32vector? f32?
