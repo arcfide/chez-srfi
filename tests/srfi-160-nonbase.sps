@@ -30,8 +30,7 @@
 	(srfi :160 u8) (srfi :160 u16) (srfi :160 u32) (srfi :160 u64)
 	(srfi :160 s8) (srfi :160 s16) (srfi :160 s32) (srfi :160 s64)
 	(srfi :160 f32) (srfi :160 f64)
-        (srfi :160 c64) (srfi :160 c128)
-        (srfi :160 meta utils))
+        (srfi :160 c64) (srfi :160 c128))
 
 #| General test procedures |#
 
@@ -116,6 +115,20 @@
 
 #| Utility procedures |#
 
+(define (compose f . rest)
+  (if (null? rest)
+      f
+      (let ([g (apply compose rest)])
+	(lambda args
+	  (call-with-values (lambda () (apply g args)) f)))))
+
+(define (identity x) x)
+
+(define (make-range A B)
+  (if (or (not (fixnum? A)) (not (fixnum? B)) (fx<? B A))
+      (error 'make-range "range must be from fixnums A to B where A <= B")
+      (iota (fx- B A) A)))
+
 (define (gen-range min max) (make-random-integer-generator min max))
 (define pgen (circular-generator values))
 
@@ -128,6 +141,28 @@
 (define x<0.5? (compose not x>=0.5?))
 (define (magn>0.5? x) (> (magnitude x) 0.5))
 (define (magn<0.5? x) (< (magnitude x) 0.5))
+
+(define (compare-lengths len comp v . vs)
+  "Apply length and run a comparison like min/max, and return the result or #f"
+  (let loop ([src vs] [prev (len v)])
+    (if (null? src)
+	prev
+	(let ([res (comp prev (len (car src)))])
+	  (and res
+	       (loop (cdr src) res))))))
+
+(define like-vowels
+  (string->list "faeiohlmnrstvwxyzFAEIOHLMNRSTVWXYZ"))
+
+(define (one-of str)
+  (if (and (fx>? (string-length str) 0)
+           (memq (string-ref str 0) like-vowels))
+      "an"
+      "a"))
+
+(define (format-vector-type fmt-str type-of)
+  (let ([template (format "~a ~a" (one-of type-of) type-of)])
+    (format fmt-str template)))
 
 #| Mutators |#
 
@@ -250,8 +285,8 @@ Then, in a specific area start-end, fill it with the *index*. |#
 (define (sqrt-nearest x . x*)
   "Get the nearest square root (of absolute value)"
   (call-with-values
-      (thunk (exact-integer-sqrt
-              (abs (apply + x x*))))
+      (lambda () (exact-integer-sqrt
+                  (abs (apply + x x*))))
     (lambda (first _)
       first)))
 
@@ -293,7 +328,7 @@ Then, in a specific area start-end, fill it with the *index*. |#
   (irritants v)
   (message (format "~~a is not of type ~a" *type-of*)))
 
-(include "srfi-160-mutators-tests.scm")
-(include "srfi-160-constructors-tests.scm")
-(include "srfi-160-iteration-tests.scm")
-(include "srfi-160-searching-tests.scm")
+(include "test/srfi-160-mutators-tests.scm")
+(include "test/srfi-160-constructors-tests.scm")
+(include "test/srfi-160-iteration-tests.scm")
+(include "test/srfi-160-searching-tests.scm")

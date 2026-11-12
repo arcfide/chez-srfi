@@ -310,7 +310,7 @@
 
 (run-searching-tests #f #t
   "f32vector"
-  (thunk (make-random-real-generator 0 1))
+  (lambda () (make-random-real-generator 0 1))
   list->f32vector f32vector->list reverse-f32vector->list
   f32vector-length
   f32vector-take
@@ -321,7 +321,7 @@
 
 (run-searching-tests #f #t
   "f64vector"
-  (thunk (make-random-real-generator 0 1))
+  (lambda () (make-random-real-generator 0 1))
   list->f64vector f64vector->list reverse-f64vector->list
   f64vector-length
   f64vector-take
@@ -332,7 +332,7 @@
 
 (run-searching-tests #f #f
   "c64vector"
-  (thunk (make-random-rectangular-generator 0 1 0 1))
+  (lambda () (make-random-rectangular-generator 0 1 0 1))
   list->c64vector c64vector->list reverse-c64vector->list
   c64vector-length
   c64vector-take
@@ -343,7 +343,7 @@
 
 (run-searching-tests #f #f
   "c128vector"
-  (thunk (make-random-rectangular-generator 0 1 0 1))
+  (lambda () (make-random-rectangular-generator 0 1 0 1))
   list->c128vector c128vector->list reverse-c128vector->list
   c128vector-length
   c128vector-take
