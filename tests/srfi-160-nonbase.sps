@@ -328,7 +328,7 @@ Then, in a specific area start-end, fill it with the *index*. |#
   (irritants v)
   (message (format "~~a is not of type ~a" *type-of*)))
 
-(include "test/srfi-160-mutators-tests.scm")
-(include "test/srfi-160-constructors-tests.scm")
-(include "test/srfi-160-iteration-tests.scm")
-(include "test/srfi-160-searching-tests.scm")
+(include "srfi-160-mutators-tests.scm")
+(include "srfi-160-constructors-tests.scm")
+(include "srfi-160-iteration-tests.scm")
+(include "srfi-160-searching-tests.scm")
