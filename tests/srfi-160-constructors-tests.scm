@@ -171,28 +171,28 @@
 
 (run-constructors-tests #f
   "f32vector"
-  (thunk (make-random-real-generator 0 1))
+  (lambda () (make-random-real-generator 0 1))
   list->f32vector f32vector->list reverse-f32vector->list
   f32vector-length
   f32vector-unfold f32vector-unfold-right f32vector-copy f32vector-reverse-copy)
 
 (run-constructors-tests #f
   "f64vector"
-  (thunk (make-random-real-generator 0 1))
+  (lambda () (make-random-real-generator 0 1))
   list->f64vector f64vector->list reverse-f64vector->list
   f64vector-length
   f64vector-unfold f64vector-unfold-right f64vector-copy f64vector-reverse-copy)
 
 (run-constructors-tests #f
   "c64vector"
-  (thunk (make-random-rectangular-generator 0 1 0 1))
+  (lambda () (make-random-rectangular-generator 0 1 0 1))
   list->c64vector c64vector->list reverse-c64vector->list
   c64vector-length
   c64vector-unfold c64vector-unfold-right c64vector-copy c64vector-reverse-copy)
 
 (run-constructors-tests #f
   "c128vector"
-  (thunk (make-random-rectangular-generator 0 1 0 1))
+  (lambda () (make-random-rectangular-generator 0 1 0 1))
   list->c128vector c128vector->list reverse-c128vector->list
   c128vector-length
   c128vector-unfold c128vector-unfold-right c128vector-copy c128vector-reverse-copy)

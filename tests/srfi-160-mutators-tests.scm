@@ -336,7 +336,7 @@
 
 (run-mutators-tests #f #t
   "f32vector"
-  (thunk (make-random-real-generator 0 1))
+  (lambda () (make-random-real-generator 0 1))
   f32vector list->f32vector f32vector->list
   f32vector-length f32vector-ref f32vector-set!
   f32vector-swap! f32vector-unfold! f32vector-unfold-right! f32vector-fill! f32vector-reverse! f32vector-copy! f32vector-reverse-copy!
@@ -344,7 +344,7 @@
 
 (run-mutators-tests #f #t
   "f64vector"
-  (thunk (make-random-real-generator 0 1))
+  (lambda () (make-random-real-generator 0 1))
   f64vector list->f64vector f64vector->list
   f64vector-length f64vector-ref f64vector-set!
   f64vector-swap! f64vector-unfold! f64vector-unfold-right! f64vector-fill! f64vector-reverse! f64vector-copy! f64vector-reverse-copy!
@@ -352,7 +352,7 @@
 
 (run-mutators-tests #f #f
   "c64vector"
-  (thunk (make-random-rectangular-generator 0 1 0 1))
+  (lambda () (make-random-rectangular-generator 0 1 0 1))
   c64vector list->c64vector c64vector->list
   c64vector-length c64vector-ref c64vector-set!
   c64vector-swap! c64vector-unfold! c64vector-unfold-right! c64vector-fill! c64vector-reverse! c64vector-copy! c64vector-reverse-copy!
@@ -360,7 +360,7 @@
 
 (run-mutators-tests #f #f
   "c128vector"
-  (thunk (make-random-rectangular-generator 0 1 0 1))
+  (lambda () (make-random-rectangular-generator 0 1 0 1))
   c128vector list->c128vector c128vector->list
   c128vector-length c128vector-ref c128vector-set!
   c128vector-swap! c128vector-unfold! c128vector-unfold-right! c128vector-fill! c128vector-reverse! c128vector-copy! c128vector-reverse-copy!

@@ -68,12 +68,49 @@
           (rename (rnrs (6))
                   (exact? r6rs:exact?)
                   (inexact? r6rs:inexact?))
-          (only (rnrs r5rs (6)) exact->inexact inexact->exact)
-          (only (srfi :160 meta utils)
-                format-vector-type
-                nonnegative-fixnum? exact-integer? inexact?
-                raised-with?))
+          (only (rnrs r5rs (6)) exact->inexact inexact->exact))
+  #|
+     Miscellaneous utilities
+  |#
+  (define like-vowels
+    (string->list "faeiohlmnrstvwxyzFAEIOHLMNRSTVWXYZ"))
 
+  (define (one-of str)
+    (if (and (fx>? (string-length str) 0)
+             (memq (string-ref str 0) like-vowels))
+        "an"
+        "a"))
+
+  (define (format-vector-type fmt-str type-of)
+    (let ([template (format "~a ~a" (one-of type-of) type-of)])
+      (format fmt-str template)))
+
+  (define (nonnegative-fixnum? x)
+    (and (fixnum? x)
+         (not (fxnegative? x))))
+
+  (define (exact-integer? x)
+    (and (integer? x)
+         (r6rs:exact? x)))
+
+  (define (exact? x)
+    (and (number? x) (r6rs:exact? x)))
+
+  (define (inexact? x)
+    (and (number? x) (r6rs:inexact? x)))
+
+  (define raised-with?
+    (case-lambda
+     [(ex who)
+      (and (who-condition? ex)
+           (eq? (condition-who ex) who))]
+     [(ex who . who*)
+      (and (who-condition? ex)
+           (eq? (condition-who ex) (cons who who*)))]))
+
+  #|
+     Basic predicates not found in SRFI 4
+  |#
   (define (u8? n)  (and (exact-integer? n) (<= 0 n 255)))
   (define (s8? n)  (and (exact-integer? n) (<= -128 n 127)))
   (define (u16? n) (and (exact-integer? n) (<= 0 n 65535)))
@@ -87,6 +124,9 @@
   (define (c64? n) (inexact? n))
   (define (c128? n) (inexact? n))
 
+  #|
+     Largely customised from Keep's SRFI 4 included in Chez-SRFI
+  |#
   (define-syntax define-integer-vector
     (lambda (x)
       (define format-id
