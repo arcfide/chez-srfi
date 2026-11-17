@@ -40,13 +40,35 @@
 	  c64vector-comparator
 	  make-c64vector-generator)
 
-  (import (rnrs base (6))
-          (srfi :160 meta)
-	  (srfi :160 base))
+  (import (only (chezscheme) assertion-violationf with-implicit)
+          (rename (rnrs base (6))
+                  (exact? r6rs:exact?)
+                  (inexact? r6rs:inexact?)
+                  (map list-map))
+          (rnrs arithmetic fixnums (6))
+          (only (rnrs conditions (6))
+                who-condition? condition-who
+                irritants-condition? condition-irritants
+                message-condition? condition-message)
+          (only (rnrs control (6)) case-lambda when unless)
+          (only (rnrs exceptions (6)) guard raise raise-continuable)
+          (only (rnrs io simple (6)) display current-output-port)
+          (only (rnrs lists (6)) fold-left memq)
+          (only (rnrs r5rs (6)) exact->inexact inexact->exact)
+          (rnrs syntax-case (6))
+          (only (srfi :1 lists) iota)
+	  (srfi :28 basic-format-strings)
+	  (srfi :128 comparators)
+          (only (srfi :158 generators-and-accumulators) make-coroutine-generator)
+          ;;
+          (srfi private include)
+          (srfi :160 base))
+
+  (include/resolve ("srfi" "%3a160") "meta.chezscheme.scm")
 
   (define-meta-all c64vector #t
     c64vector? c64?
     "c64vector"
-    make-random-c64-generator
+    #f
     c64vector make-c64vector list->c64vector c64vector->list
     c64vector-length c64vector-ref c64vector-set!))

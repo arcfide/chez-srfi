@@ -3,7 +3,7 @@
 ;;; SPDX-License-Identifier: MIT
 #!r6rs
 
-(import (only (chezscheme) include format random)
+(import (only (chezscheme) format random)
         (rename (rnrs (6))
                 (exact? r6rs:exact?)
                 (inexact? r6rs:inexact?))
@@ -33,8 +33,7 @@
               symbol-generator
               test-property/unnamed
               test-property-expect-fail/unnamed)
-        (srfi :160 base)
-        (srfi :160 meta utils))
+        (srfi :160 base))
 
 (define-syntax (raises    stx) (syntax-violation #f "invalid use of auxilliary syntax" stx))
 (define-syntax (irritants stx) (syntax-violation #f "invalid use of auxilliary syntax" stx))
@@ -106,6 +105,19 @@
 		      (current-output-port)))))]))
 
 (define (gen-range min max) (make-random-integer-generator min max))
+
+(define like-vowels
+  (string->list "faeiohlmnrstvwxyzFAEIOHLMNRSTVWXYZ"))
+
+(define (one-of str)
+  (if (and (fx>? (string-length str) 0)
+           (memq (string-ref str 0) like-vowels))
+      "an"
+      "a"))
+
+(define (format-vector-type fmt-str type-of)
+  (let ([template (format "~a ~a" (one-of type-of) type-of)])
+    (format fmt-str template)))
 
 (define-syntax run-all-base-tests
   (syntax-rules (exact)
@@ -332,13 +344,13 @@
 
 (run-all-base-tests (exact #f)
  "f32vector"
- #f #f (thunk (make-random-real-generator 0 1))
+ #f #f (lambda () (make-random-real-generator 0 1))
  f32vector make-f32vector list->f32vector f32vector->list
  f32vector-length f32vector-ref f32vector-set!)
 
 (run-all-base-tests (exact #f)
  "f64vector"
- #f #f (thunk (make-random-real-generator 0 1))
+ #f #f (lambda () (make-random-real-generator 0 1))
  f64vector make-f64vector list->f64vector f64vector->list
  f64vector-length f64vector-ref f64vector-set!)
 
@@ -346,12 +358,12 @@
 
 (run-all-base-tests (exact #f)
  "c64vector"
- #f #f (thunk (make-random-rectangular-generator 0 256 0 256))
+ #f #f (lambda () (make-random-rectangular-generator 0 256 0 256))
  c64vector make-c64vector list->c64vector c64vector->list
  c64vector-length c64vector-ref c64vector-set!)
 
 (run-all-base-tests (exact #f)
  "c128vector"
- #f #f (thunk (make-random-rectangular-generator 0 256 0 256))
+ #f #f (lambda () (make-random-rectangular-generator 0 256 0 256))
  c128vector make-c128vector list->c128vector c128vector->list
  c128vector-length c128vector-ref c128vector-set!)
