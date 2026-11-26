@@ -45,7 +45,7 @@
       (78 lightweight-testing)
       (98 os-environment-variables)
       (99 records)
-      (115 regex)
+      (115 regexp)
       (117 list-queues)
       (125 hashtables)
       (126 r6rs-hashtables)
